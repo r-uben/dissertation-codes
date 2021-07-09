@@ -22,7 +22,9 @@ class EMV(object):
         self.M              = M
         # Sample Average Size
         self.N              = N
-        # MARKET PARAMETERS
+        # Final Step
+        self.final_step = int(np.floor(self.T / self.dt))
+        # MARKET (PARAMETERS)
         self.sharpe_ratio   = sharpe_ratio
         self.sigma          = sigma
 
@@ -38,7 +40,7 @@ class EMV(object):
         phi1 = phi[0]
         phi2 = phi[1]
         # To clean up the code we just separate the result into different factors
-        first_factor    = np.sqrt(2 * phi2 / self.λ / np.pi)
+        first_factor    = np.sqrt( (2 * phi2) / (self.λ * np.pi))
         second_factor   = np.exp( (2 * phi1 - 1) / 2) 
         coeff           = - first_factor * second_factor
         # Return the mean of the policy (density)
@@ -50,7 +52,7 @@ class EMV(object):
         phi1 = phi[0]
         phi2 = phi[1]
          # To clean up the code we just separate the result into different factors
-        num_term = 1 / 2 / np.pi
+        num_term = 1 / (2 * np.pi)
         exp_term = np.exp(2 * phi2 * (self.T - t) + 2 * phi1 - 1)
         # Return the variance of the policy (density)
         variance =  num_term * exp_term
@@ -67,7 +69,7 @@ class EMV(object):
         V = first_term + second_term + third_term + fourth_term
         return V
 
-    def __diff_V_i_(self, phi, theta, w, D_k, i):
+    def __diff_V_i_(self, theta, w, D_k, i):
         ''' 
             This function calculates the approximate derivative of the value function given two 
             consecutives times.
@@ -85,15 +87,17 @@ class EMV(object):
     def __C_diff_theta1_(self, phi, theta, w, D_k):
         sum = 0
         for i in range(len(D_k)-1):
-            diff_V_i    = self.__diff_V_i_(phi, theta, w, D_k, i)
+            diff_V_i    = self.__diff_V_i_(theta, w, D_k, i)
             t_i         = D_k[i][0]
-            sum         += (diff_V_i - self.λ * (phi[0] + phi[1] * (self.T - t_i))) * self.dt
+            phi1        = phi[0]
+            phi2        = phi[1]
+            sum         += (diff_V_i - self.λ * (phi1 + phi2 * (self.T - t_i))) * self.dt
         return sum
     
     def __C_diff_theta2_(self, phi, theta, w, D_k):
         sum = 0
         for i in range(len(D_k)-1):
-            diff_V_i    = self.__diff_V_i_(phi, theta, w, D_k, i)
+            diff_V_i    = self.__diff_V_i_(theta, w, D_k, i)
             t_i_plus    = D_k[i+1][0]
             t_i         = D_k[i][0]
             sum         += (diff_V_i - self.λ * (phi[0] + phi[1] * (self.T - t_i))) * (t_i_plus ** 2 - t_i ** 2)
@@ -105,7 +109,7 @@ class EMV(object):
     def __C_diff_phi_2_(self, phi, theta, w, D_k):
         sum = 0
         for i in range(len(D_k)-1):
-            diff_V_i        = self.__diff_V_i_(phi, theta, w, D_k, i)
+            diff_V_i        = self.__diff_V_i_(theta, w, D_k, i)
             t_i             = D_k[i][0]
             x_i             = D_k[i][0]
             t_i_plus        = D_k[i+1][0]
@@ -133,26 +137,27 @@ class EMV(object):
         return - theta2 * self.T ** 2 - theta1 * self.T - (w - self.z) ** 2
 
     def __update_theta1_(self, phi, theta, w, D_k):
-        return self.eta_theta * self.__C_diff_theta1_(phi, theta, w, D_k)
+        return theta[1] - self.eta_theta * self.__C_diff_theta1_(phi, theta, w, D_k)
 
     def __update_theta2_(self, phi, theta, w, D_k):
-        return self.eta_theta * self.__C_diff_theta2_(phi, theta, w, D_k)
+        return theta[2] - self.eta_theta * self.__C_diff_theta2_(phi, theta, w, D_k)
     
     def __update_theta3_(self, phi):
-        return 2 * phi[1]
+        phi2 = phi[1]
+        return 2 * phi2
 
     def __update_phi1_(self, phi, theta, w, D_k):
-        return self.eta_phi * self.__C_diff_phi_1_(phi, theta, w, D_k)
+        return phi[0] - self.eta_phi * self.__C_diff_phi_1_(phi, theta, w, D_k)
     
     def __update_phi2_(self, phi, theta, w, D_k):
-        return self.eta_phi * self.__C_diff_phi_2_(phi, theta, w, D_k)
+        return phi[1] - self.eta_phi * self.__C_diff_phi_2_(phi, theta, w, D_k)
 
     def EMV(self):
         theta = [1,1,1,1]
         phi   = [1,1]
         w     = 1
         # Vector of final wealths (states)
-        xs = []
+        final_wealths = []
         # Initial policy given initial state and time (t = 0, x = x_0)
         mu      = self.__pi_mean_(phi, self.x_0, w)
         sigma2  = self.__pi_variance_(phi, 0)
@@ -163,31 +168,36 @@ class EMV(object):
             D = [init_sample]
             # Initial state
             x = self.x_0
-            # Sample average size
-            final_step = int(np.floor(self.T / self.dt))
-            for i in range(1, final_step):
-                # Sample
-                t  = i * self.dt
+            for i in range(1, self.final_step):
+                # Sample (t_i, x_i) from Market under πϕ:
+                # u_i
                 u  = np.random.normal(mu, sigma2)
+                # t_i
+                t  = i * self.dt
+                # x_{t_i}
                 x  = self.__next_wealth_(x, u)
                 # Collected samples
                 D.append([t,x])
                 # Update theta
-                theta[1] -= self.__update_theta1_(phi, theta, w, D)
-                theta[2] -= self.__update_theta2_(phi, theta, w, D)
+                # Descendent-gradient
+                theta[1] = self.__update_theta1_(phi, theta, w, D)
+                theta[2] = self.__update_theta2_(phi, theta, w, D)
+                # Update phi (descendent-gradient only)
+                phi[0]   = self.__update_phi1_(phi, theta, w, D)
+                phi[1]   = self.__update_phi2_(phi, theta, w, D)
+                # Related with other parameters
                 theta[0] = self.__uptate_theta0_(theta, w)
                 theta[3] = self.__update_theta3_(phi)
-                # update phi
-                phi[0] -= self.__update_phi1_(phi, theta, w, D)
-                phi[1] -= self.__update_phi2_(phi, theta, w, D)
-            xs.append(x)
+            # Save final-wealth
+            final_wealths.append(x)
             # Update pi
-            mu      = self.__pi_mean_(phi, self.x_0, w)
-            sigma2  = self.__pi_variance_(phi, 0)
+            mu      = self.__pi_mean_(phi, x, w)
+            sigma2  = self.__pi_variance_(phi, t)
+            # Update w
             if k % self.N == 0:
                 mean_x = 0
                 for j in range(k - self.N + 1, k):
-                    mean_x += xs[j]
+                    mean_x += final_wealths[j]
                 mean_x /= self.N 
                 w   -= self.alpha * ( mean_x - self.z )
         return theta, phi, w
