@@ -110,27 +110,27 @@ def RMS(theor, emp):
 
 if __name__== "__main__":
     print("-------------------------------------")
-    print("-------------------------------------")
     # Dictionary of rewards
     R = rewards()
     # Learning rate 
     α = 0.01
     # Discount factor
     γ = 1  
-    # Number of episodes
-    M = 100
     # THEOR VALUES (CALCULATED AD HOC)
-    theor_values = [1/6, 2/6, 3/6, 4/6, 5/6]
-    mean_theor_value = E(theor_values)
+    theor_values = {"A": 1/6, "B": 2/6, "C" : 3/6, "D" : 4/6, "E": 5/6}
     # Different Learning rates
-    for α in [0.01, 0.03, 0.4, 0.5, 0.05, 0.1, 0.15]:
+    for α in [0.05, 0.1, 0.15]:
         # Number of episodes
+        rms = []
         episodes    = []
-        rms         = []
         for M in range(1, 100):
             # 100 times with M episodes to calculate RMS
-            mean_values = []
-            for _ in range(200):
+            V_A = []
+            V_B = []
+            V_C = []
+            V_D = []
+            V_E = []
+            for _ in range(1, 100):
                 # Dictionary of initial values
                 V  = homogeneous_initial_value(0.5, R)
                 # Loop for each episode (M times)
@@ -140,13 +140,18 @@ if __name__== "__main__":
                     # Run episode
                     V = episode(S, α, γ, R, V)
                 # Keep all values in all state
-                values = [V['A'], V['B'], V['C'], V['D'], V['E']]
-                # Calculate its mean
-                mean_value = E(values)
-                # Keep the mean
-                mean_values.append(mean_value)
+                V_A.append(V['A'])
+                V_B.append(V['B'])
+                V_C.append(V['C'])
+                V_D.append(V['D'])
+                V_E.append(V['E'])
             # Calculate and keep rms values 
-            rms.append(RMS(mean_theor_value, mean_values))
+            rms_A = RMS(theor_values["A"], V_A)
+            rms_B = RMS(theor_values["B"], V_B)
+            rms_C = RMS(theor_values["C"], V_C)
+            rms_D = RMS(theor_values["D"], V_D)
+            rms_E = RMS(theor_values["E"], V_E)
+            rms.append(E([rms_A, rms_B, rms_C, rms_D, rms_E]))
             # Keep number of episodes
             episodes.append(M)
         # Plot
@@ -154,7 +159,7 @@ if __name__== "__main__":
     # Legend
     plt.legend()
     # Show plot
-    plt.show()
+    plt.savefig('random_walk_RMS_TD.eps', format='eps')
 
 
             
