@@ -153,8 +153,8 @@ class EMV(object):
         return phi[1] - self.eta_phi * self.__C_diff_phi_2_(phi, theta, w, D_k)
 
     def EMV(self):
-        theta = [1,1,1,1]
-        phi   = [1,1]
+        theta = [2,2 ,2,2]
+        phi   = [2,2]
         w     = 1
         # Vector of final wealths (states)
         final_wealths = []
@@ -182,12 +182,13 @@ class EMV(object):
                 # Descendent-gradient
                 theta[1] = self.__update_theta1_(phi, theta, w, D)
                 theta[2] = self.__update_theta2_(phi, theta, w, D)
-                # Update phi (descendent-gradient only)
-                phi[0]   = self.__update_phi1_(phi, theta, w, D)
-                phi[1]   = self.__update_phi2_(phi, theta, w, D)
                 # Related with other parameters
                 theta[0] = self.__uptate_theta0_(theta, w)
                 theta[3] = self.__update_theta3_(phi)
+                # Update phi (descendent-gradient only)
+                phi[0]   = self.__update_phi1_(phi, theta, w, D)
+                phi[1]   = self.__update_phi2_(phi, theta, w, D)
+            print(theta[3])
             # Save final-wealth
             final_wealths.append(x)
             # Update pi
@@ -200,4 +201,5 @@ class EMV(object):
                     mean_x += final_wealths[j]
                 mean_x /= self.N 
                 w   -= self.alpha * ( mean_x - self.z )
+                print(w)
         return theta, phi, w
