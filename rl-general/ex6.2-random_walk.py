@@ -109,7 +109,6 @@ def RMS(theor, emp):
     return np.sqrt(E(sq))
 
 if __name__== "__main__":
-    print("-------------------------------------")
     # Dictionary of rewards
     R = rewards()
     # Learning rate 
@@ -159,7 +158,9 @@ if __name__== "__main__":
     # Legend
     plt.legend()
     # Show plot
-    plt.savefig('random_walk_RMS_TD.eps', format='eps')
+    plt.savefig('img/random_walk_RMS_TD.eps', format='eps')
+    plt.savefig('img/random_walk_RMS_TD.jpg', format='jpg')
+    print("-------------------------------------")
 
 
             
