@@ -1,0 +1,299 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		30D4D6EE269DCB4B00E2C3D9 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6ED269DCB4B00E2C3D9 /* main.cpp */; };
+		30D4D6F9269DCBC500E2C3D9 /* CEMV.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6F7269DCBC500E2C3D9 /* CEMV.cpp */; };
+		30D4D700269DDBA700E2C3D9 /* CDescendentGradient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		30D4D6E8269DCB4B00E2C3D9 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		30D4D6EA269DCB4B00E2C3D9 /* emv-algorithm-c++ */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "emv-algorithm-c++"; sourceTree = BUILT_PRODUCTS_DIR; };
+		30D4D6ED269DCB4B00E2C3D9 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		30D4D6F7269DCBC500E2C3D9 /* CEMV.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = CEMV.cpp; path = CEMV/CEMV.cpp; sourceTree = "<group>"; };
+		30D4D6F8269DCBC500E2C3D9 /* CEMV.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = CEMV.hpp; path = CEMV/CEMV.hpp; sourceTree = "<group>"; };
+		30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CDescendentGradient.cpp; sourceTree = "<group>"; };
+		30D4D6FF269DDBA700E2C3D9 /* CDescendentGradient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CDescendentGradient.hpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		30D4D6E7269DCB4B00E2C3D9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		30D4D6E1269DCB4B00E2C3D9 = {
+			isa = PBXGroup;
+			children = (
+				30D4D6EC269DCB4B00E2C3D9 /* emv-algorithm-c++ */,
+				30D4D6EB269DCB4B00E2C3D9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		30D4D6EB269DCB4B00E2C3D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				30D4D6EA269DCB4B00E2C3D9 /* emv-algorithm-c++ */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		30D4D6EC269DCB4B00E2C3D9 /* emv-algorithm-c++ */ = {
+			isa = PBXGroup;
+			children = (
+				30D4D6FD269DDB8D00E2C3D9 /* aux */,
+				30D4D6ED269DCB4B00E2C3D9 /* main.cpp */,
+				30D4D6F7269DCBC500E2C3D9 /* CEMV.cpp */,
+				30D4D6F8269DCBC500E2C3D9 /* CEMV.hpp */,
+			);
+			path = "emv-algorithm-c++";
+			sourceTree = "<group>";
+		};
+		30D4D6FD269DDB8D00E2C3D9 /* aux */ = {
+			isa = PBXGroup;
+			children = (
+				30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */,
+				30D4D6FF269DDBA700E2C3D9 /* CDescendentGradient.hpp */,
+			);
+			path = aux;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		30D4D6E9269DCB4B00E2C3D9 /* emv-algorithm-c++ */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30D4D6F1269DCB4B00E2C3D9 /* Build configuration list for PBXNativeTarget "emv-algorithm-c++" */;
+			buildPhases = (
+				30D4D6E6269DCB4B00E2C3D9 /* Sources */,
+				30D4D6E7269DCB4B00E2C3D9 /* Frameworks */,
+				30D4D6E8269DCB4B00E2C3D9 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "emv-algorithm-c++";
+			productName = "emv-algorithm-c++";
+			productReference = 30D4D6EA269DCB4B00E2C3D9 /* emv-algorithm-c++ */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		30D4D6E2269DCB4B00E2C3D9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+					30D4D6E9269DCB4B00E2C3D9 = {
+						CreatedOnToolsVersion = 12.5.1;
+					};
+				};
+			};
+			buildConfigurationList = 30D4D6E5269DCB4B00E2C3D9 /* Build configuration list for PBXProject "emv-algorithm-c++" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 30D4D6E1269DCB4B00E2C3D9;
+			productRefGroup = 30D4D6EB269DCB4B00E2C3D9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				30D4D6E9269DCB4B00E2C3D9 /* emv-algorithm-c++ */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		30D4D6E6269DCB4B00E2C3D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30D4D6F9269DCBC500E2C3D9 /* CEMV.cpp in Sources */,
+				30D4D6EE269DCB4B00E2C3D9 /* main.cpp in Sources */,
+				30D4D700269DDBA700E2C3D9 /* CDescendentGradient.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		30D4D6EF269DCB4B00E2C3D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		30D4D6F0269DCB4B00E2C3D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		30D4D6F2269DCB4B00E2C3D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		30D4D6F3269DCB4B00E2C3D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		30D4D6E5269DCB4B00E2C3D9 /* Build configuration list for PBXProject "emv-algorithm-c++" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30D4D6EF269DCB4B00E2C3D9 /* Debug */,
+				30D4D6F0269DCB4B00E2C3D9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		30D4D6F1269DCB4B00E2C3D9 /* Build configuration list for PBXNativeTarget "emv-algorithm-c++" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				30D4D6F2269DCB4B00E2C3D9 /* Debug */,
+				30D4D6F3269DCB4B00E2C3D9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 30D4D6E2269DCB4B00E2C3D9 /* Project object */;
+}

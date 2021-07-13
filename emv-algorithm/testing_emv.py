@@ -26,7 +26,7 @@ if __name__== "__main__":
 
     r = 0.02
 
-    mu = 0.5
+    mu = 0.1
     sigma  = 0.1
     ρ = (mu - r) / sigma
 
