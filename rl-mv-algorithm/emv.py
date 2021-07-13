@@ -131,6 +131,30 @@ class EMV(object):
         W = np.random.normal(0, 1)
         return prev_x + self.sigma * prev_u * (self.sharpe_ratio * self.dt + W * np.sqrt(self.dt))
 
+    def __collect_samples_(self, phi, w):
+        # Initial state
+        x = self.x_0
+        # Initial time
+        t = 0
+        # Initial sample
+        init_sample = [t, x]
+        # Collected samples set
+        D = [init_sample]
+        # Sample (t_i, x_i) from Market under πϕ:
+        for i in range(1, self.final_step):
+            # Mean and variance
+            pi_mean     = self.__pi_mean_(phi, x, w)
+            pi_variance = self.__pi_variance_(phi, t)
+            # u_i
+            u  = np.random.normal(pi_mean, pi_variance)
+            # t_i
+            t  = i * self.dt
+            # x_{t_i}
+            x  = self.__next_wealth_(x, u)
+            # Collected samples
+            D.append([t,x])
+        return D
+
     def __uptate_theta0_(self, theta, w):
         theta1 = theta[1]
         theta2 = theta[2]
@@ -152,54 +176,43 @@ class EMV(object):
     def __update_phi2_(self, phi, theta, w, D_k):
         return phi[1] - self.eta_phi * self.__C_diff_phi_2_(phi, theta, w, D_k)
 
+    def __update_all_(self, phi, theta, w, D):
+        for i in range(1, self.final_step):
+            # θ1, θ2
+            theta[1] = self.__update_theta1_(phi, theta, w, D)
+            theta[2] = self.__update_theta2_(phi, theta, w, D)
+            # Related with other parameters
+            theta[0] = self.__uptate_theta0_(theta, w)
+            theta[3] = self.__update_theta3_(phi)
+            # ϕ1, ϕ2
+            phi[0]   = self.__update_phi1_(phi, theta, w, D)
+            phi[1]   = self.__update_phi2_(phi, theta, w, D)
+        return phi, theta
+
+    def __update_w_(self, w, k, final_wealths):
+        if k % self.N == 0:
+            mean_x = 0
+            for j in range(k - self.N + 1, k):
+                mean_x += final_wealths[j]
+            mean_x /= self.N 
+            w   -= self.alpha * ( mean_x - self.z )
+        return w
+
     def EMV(self):
-        theta = [2,2 ,2,2]
-        phi   = [2,2]
+        theta = [1,1,1,1]
+        phi   = [1,1]
         w     = 1
         # Vector of final wealths (states)
         final_wealths = []
-        # Initial policy given initial state and time (t = 0, x = x_0)
-        mu      = self.__pi_mean_(phi, self.x_0, w)
-        sigma2  = self.__pi_variance_(phi, 0)
         # Number of iterations
         for k in range(1, self.M):
             # Collected samples (each try we sample a new )
-            init_sample = [0, self.x_0]
-            D = [init_sample]
-            # Initial state
-            x = self.x_0
-            for i in range(1, self.final_step):
-                # Sample (t_i, x_i) from Market under πϕ:
-                # u_i
-                u  = np.random.normal(mu, sigma2)
-                # t_i
-                t  = i * self.dt
-                # x_{t_i}
-                x  = self.__next_wealth_(x, u)
-                # Collected samples
-                D.append([t,x])
-                # Update theta
-                # Descendent-gradient
-                theta[1] = self.__update_theta1_(phi, theta, w, D)
-                theta[2] = self.__update_theta2_(phi, theta, w, D)
-                # Related with other parameters
-                theta[0] = self.__uptate_theta0_(theta, w)
-                theta[3] = self.__update_theta3_(phi)
-                # Update phi (descendent-gradient only)
-                phi[0]   = self.__update_phi1_(phi, theta, w, D)
-                phi[1]   = self.__update_phi2_(phi, theta, w, D)
-            print(theta[3])
+            D           = self.__collect_samples_(phi, w)
             # Save final-wealth
-            final_wealths.append(x)
-            # Update pi
-            mu      = self.__pi_mean_(phi, x, w)
-            sigma2  = self.__pi_variance_(phi, t)
+            final_wealths.append(D[-1][0])
+            # Descent-Gradient
+            phi, theta  = self.__update_all_(phi, theta, w, D)
+            print(self.sharpe_ratio, self.sharpe_ratio**2, np.sqrt(theta[3]))
             # Update w
-            if k % self.N == 0:
-                mean_x = 0
-                for j in range(k - self.N + 1, k):
-                    mean_x += final_wealths[j]
-                mean_x /= self.N 
-                w   -= self.alpha * ( mean_x - self.z )
-                print(w)
+            w           = self.__update_w_(w, k, final_wealths)
         return theta, phi, w
