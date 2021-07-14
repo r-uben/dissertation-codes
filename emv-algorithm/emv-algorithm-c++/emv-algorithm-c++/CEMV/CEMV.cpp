@@ -56,6 +56,7 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         updateLagrange(k);
     }
     output.close();
+    cout << "ρ^2: " << m_ρ * m_ρ << ", θ3: " << m_θ[3] << endl;
 }
 
 void
@@ -134,7 +135,7 @@ EMV::nextWealth(double x, double u)
 }
 
 void
-CEMV::updateLagrange(int k)
+EMV::updateLagrange(int k)
 {
     double mean_x;
     if (k % m_N == 0) {
