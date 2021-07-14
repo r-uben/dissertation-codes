@@ -10,6 +10,7 @@
 		30D4D6EE269DCB4B00E2C3D9 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6ED269DCB4B00E2C3D9 /* main.cpp */; };
 		30D4D6F9269DCBC500E2C3D9 /* CEMV.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6F7269DCBC500E2C3D9 /* CEMV.cpp */; };
 		30D4D700269DDBA700E2C3D9 /* CDescendentGradient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */; };
+		30D4D702269E11F200E2C3D9 /* PrintMacros.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 30D4D701269E11F200E2C3D9 /* PrintMacros.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,7 @@
 		30D4D6F8269DCBC500E2C3D9 /* CEMV.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = CEMV.hpp; path = CEMV/CEMV.hpp; sourceTree = "<group>"; };
 		30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CDescendentGradient.cpp; sourceTree = "<group>"; };
 		30D4D6FF269DDBA700E2C3D9 /* CDescendentGradient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CDescendentGradient.hpp; sourceTree = "<group>"; };
+		30D4D701269E11F200E2C3D9 /* PrintMacros.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PrintMacros.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,8 @@
 		30D4D6EC269DCB4B00E2C3D9 /* emv-algorithm-c++ */ = {
 			isa = PBXGroup;
 			children = (
+				30D4D704269EB95900E2C3D9 /* data */,
+				30D4D703269EB95300E2C3D9 /* img */,
 				30D4D6FD269DDB8D00E2C3D9 /* aux */,
 				30D4D6ED269DCB4B00E2C3D9 /* main.cpp */,
 				30D4D6F7269DCBC500E2C3D9 /* CEMV.cpp */,
@@ -74,10 +78,25 @@
 		30D4D6FD269DDB8D00E2C3D9 /* aux */ = {
 			isa = PBXGroup;
 			children = (
+				30D4D701269E11F200E2C3D9 /* PrintMacros.hpp */,
 				30D4D6FE269DDBA700E2C3D9 /* CDescendentGradient.cpp */,
 				30D4D6FF269DDBA700E2C3D9 /* CDescendentGradient.hpp */,
 			);
 			path = aux;
+			sourceTree = "<group>";
+		};
+		30D4D703269EB95300E2C3D9 /* img */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = img;
+			sourceTree = "<group>";
+		};
+		30D4D704269EB95900E2C3D9 /* data */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = data;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -138,6 +157,7 @@
 			files = (
 				30D4D6F9269DCBC500E2C3D9 /* CEMV.cpp in Sources */,
 				30D4D6EE269DCB4B00E2C3D9 /* main.cpp in Sources */,
+				30D4D702269E11F200E2C3D9 /* PrintMacros.hpp in Sources */,
 				30D4D700269DDBA700E2C3D9 /* CDescendentGradient.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

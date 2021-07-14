@@ -7,6 +7,7 @@
 
 #include "CEMV.hpp"
 #include "CDescendentGradient.hpp"
+
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -37,41 +38,58 @@ CEMV::EMV(vector<double>&θ, vector<double>&φ, double w)
 {
     vector <double> finalWealths;
     vector <vector<double>> D;
+    // cout << "k, " << 0 << endl;
+    // cout << "θ2, " << θ[2] << endl;
+    ofstream output;
+    output.open("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv");
+    OUTPUT "k" COMMA "t" COMMA "x" END_LINE
+    // Initial sample
     for (int k = 1; k <= m_M; k++)
     {
+        cout << " ######### " << k << " ######### " << endl;
+        // cout << "θ3, " << θ[3] << ", " << "θ2, " << θ[2] << ", " << "θ1, " << θ[1] << ", "<<  "θ0, " << θ[0] << endl;
+        // cout << "k, " << k << endl;
         // Collected samples (complete path)
-        D = collectSamples(φ, w);
+        D = collectSamples(φ, w, k, output);
         // Save Final Wealths
         finalWealths.push_back(D.back()[1]);
         // Update φ, θ:
-        SDA update(m_ηθ, m_ηφ, m_z, m_λ, θ, φ, w, D);
-        θ = update.Getθ();
-        φ = update.Getφ();
+        SDA parameters(m_ηθ, m_ηφ, m_z, m_λ, θ, φ, w, D);
+        parameters.updateAll();
+        θ = parameters.Getθ();
+        φ = parameters.Getφ();
+        // cout << "k = " << k << ", φ1 = " << φ[0] << ", φ2 = " << φ[1] << endl;
         w = updateLagrange(w, k, finalWealths);
     }
-    cout << m_ρ * m_ρ << θ[3] << endl;
+    output.close();
+    cout << m_ρ * m_ρ << ", " << θ[3] << endl;
 }
 
 vector<vector<double>>
-CEMV::collectSamples(vector<double>&φ, double w)
+CEMV::collectSamples(vector<double>&φ, double w, int k, ofstream &output)
 {
-    // Initial sample
     double t = 0., x = m_x0, u;
     vector <double> sample = { t, x };
+    OUTPUT k COMMA t COMMA x END_LINE
     vector <vector <double>> D = { sample };
     for ( int i = 1; i <= m_finalStep; i++)
     {
         // Mean and Variance
         double mean = piMean(φ, x, w);
         double var  = piVariance(φ, t);
+        // cout << "φ2 = " << φ[1] << ", mean = " << mean << ", variance = " << var << endl;
         // Distribution
-        static mt19937 rng;
+        mt19937 rng;
         normal_distribution<double> phi(mean,var);
         // Update risky allocation, next time step and wealth
         u = phi(rng);
         t = i * m_dt;
         x = nextWealth(x, u);
+        OUTPUT k COMMA t COMMA x END_LINE
+//        cout << "mean: " << mean << " variance: " << var << endl;
+//        cout << "t = " << t << ", u = " << u  << " x = " << x << endl;
         sample = { t, x };
+        // cout << "t, " << t << ", u, " << u << ", x, " << x << endl;
         D.push_back(sample);
     }
     return D;
@@ -86,7 +104,7 @@ CEMV::piMean(vector<double>&φ, double x, double w)
     double φ1 = φ[0];
     double φ2 = φ[1];
     // To  clean up the code we just separate the result into different factors
-    double first_factor    = sqrt( (2. * φ2) / (m_λ * PI));
+    double first_factor    = sqrt( (2. * φ2) / (m_λ * PI) );
     double second_factor   = exp( (2. * φ1 - 1.) / 2.);
     double coeff           = - first_factor * second_factor;
     // Return the man of the policy (density)
@@ -117,8 +135,10 @@ CEMV::nextWealth(double x, double u)
     static mt19937 rng;
     // Normal distribution
     normal_distribution<double> phi(0.,1.);
+    double W = phi(rng);
     // NextX
-    nextX = x + m_σ * u * (m_ρ * m_dt + phi(rng) * sqrt(m_dt));
+    nextX = x + m_σ * u * (m_ρ * m_dt + W * sqrt(m_dt));
+    // cout << nextX << endl;
     return nextX;
 }
 

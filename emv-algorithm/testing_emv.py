@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 from matplotlib.pylab import plt
 from emv import EMV
 from parameters import Parameters
+
 
 def write_vector(file, vector, name):
     file.write(name + " = [")
@@ -47,9 +49,16 @@ if __name__== "__main__":
     num_samples = []
     rel_errors_rho  = []
 
-    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)
-    theta, phi, w = data.EMV()
-    print(theta, phi, w)
+    df = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv")
+    print(df)
+    t = df["t"]
+    x = df["x"]
+    plt.plot(t, x)
+    plt.show()
+
+    # data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)
+    # theta, phi, w = data.EMV()
+    # print(theta, phi, w)
 
     #for M in range(10,2000,10):
     #    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)

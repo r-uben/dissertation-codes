@@ -62,5 +62,6 @@ private:
 };
 
 #define SDA CDescendentGradient
+#define PRINT(a) cout << a << endl;
 
 #endif /* CDescendentGradient_hpp */

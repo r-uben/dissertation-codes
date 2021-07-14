@@ -6,6 +6,7 @@
 //
 
 #include "CDescendentGradient.hpp"
+#include "PrintMacros.hpp"
 
 SDA::CDescendentGradient(double ηθ, double ηφ, double z, double λ, vector<double> &φ, vector<double> &θ, double w, vector<vector<double>> &D)
 {
@@ -35,6 +36,7 @@ void
 SDA::updateθ1()
 {
     m_θ1 -= m_ηθ * gradientθ1();
+    
 }
 void
 SDA::updateθ2()
@@ -57,7 +59,10 @@ SDA::updateφ1()
 void
 SDA::updateφ2()
 {
+    // cout << "Before: " << m_φ2 << ", " << gradientφ2() << endl;
     m_φ2 -= m_ηφ * gradientφ2();
+    PRINT_DATA_LINE(gradientφ2(), m_φ2);
+    
 }
 
 void
@@ -69,6 +74,15 @@ SDA::updateθ3()
 void
 SDA::updateAll()
 {
+    // Update everything
+    updateθ0();
+    updateθ1();
+    updateθ2();
+    // PRINT_DATA_LINE(m_θ2, gradientθ2(), m_ηθ * gradientθ2());
+    updateθ3();
+    updateφ1();
+    updateφ2();
+    // Keep them
     m_θ = { m_θ0, m_θ1, m_θ2, m_θ3 };
     m_φ = { m_φ1, m_φ2 };
 }
@@ -124,7 +138,7 @@ SDA::gradientφ2()
         diffVi  = diffV(i);
         t       = m_D[i][0];
         x       = m_D[i][1];
-        NEXTt   = m_D[i][0];
+        NEXTt   = m_D[i+1][0];
         NEXTx   = m_D[i+1][1];
         double firstFactor  =  (diffVi - m_λ * (m_φ1 + m_φ2 * (m_T - t))) * m_dt;
         double secondFactorNumFirstSum  = (NEXTx - m_w) * (NEXTx - m_w) * exp(-2. * m_φ2 * (m_T - NEXTt)) * (m_T - NEXTt);
@@ -139,11 +153,17 @@ SDA::gradientφ2()
 double
 SDA::V(double t, double x)
 {
+    double V;
     double first_term  = (x - m_w) * (x - m_w) * exp( -m_θ3 * (m_T - t));
     double second_term = m_θ2 * t * t;
     double third_term  = m_θ1 * t;
     double fourth_term = m_θ0;
-    return first_term + second_term + third_term + fourth_term;
+    V = first_term + second_term + third_term + fourth_term;
+    // PRINT_DATA_LINE("θ3", m_θ3, "θ2", m_θ2, "θ1", m_θ1, "θ0", m_θ0);
+    // PRINT_DATA_LINE("1st Term", first_term, "2nd Term", second_term, "3th Term", third_term, "4th Term", fourth_term);
+    // PRINT_DATA_LINE(m_θ3, exp( -m_θ3 * (m_T - t)));
+    // cout << t << ", " << m_θ1 << "," endl;
+    return V;
 }
 
 double
@@ -155,7 +175,9 @@ SDA::diffV(int i)
     // i+1 --> (t_{i+1}, x_{i+1})
     double nextTime     = m_D[i+1][0];
     double nextState    = m_D[i+1][1];
+    
     // Numerator
     double diffNum = V(nextTime, nextState) - V(Time, State);
+//    PRINT_DATA_LINE(nextTime, nextState, Time, State, diffNum / m_dt);
     return diffNum / m_dt;
 }

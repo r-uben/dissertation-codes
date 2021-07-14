@@ -106,7 +106,7 @@ class EMV(object):
         return sum
     
     def __C_diff_phi_1_(self, phi, theta, w, D):
-        return - self.λ * self.__C_diff_theta1_(phi, theta, w, D_k)
+        return - self.λ * self.__C_diff_theta1_(phi, theta, w, D)
 
     def __C_diff_phi_2_(self, phi, theta, w, D):
         sum = 0
