@@ -52,30 +52,47 @@ class CEMV
 public:
     CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ);
 
-    void EMV(vector<double>&θ, vector<double>&φ, double w);
+    void emv(vector<double>&init_θ, vector<double>&init_φ, double init_w);
     
 private:
     // SOME USEFUL FUNCTIONS
-    vector <vector<double>> collectSamples(vector<double>&φ, double w, int k, ofstream &output);
-    double piMean(vector<double>&φ, double x, double w);
-    double piVariance(vector<double>&φ, double t);
-    double nextWealth(double x, double u);
-    double updateLagrange(double w, int k, vector<double> &finalWealths);
+    void    collectSamples(int k, ofstream &output);
+    void    piMean(double x);
+    void    piVariance(double t);
+    double  nextWealth(double x, double u);
+    void    updateθandφ();
+    void    updateLagrange(int k);
     
     // VARIABLES AND PARAMETERS
+    // LEARNING RATES
     double m_α;
     double m_ηθ;
     double m_ηφ;
+    // PORTFOLIO AND ITS TARGETS
     double m_x0;
     double m_z;
     double m_T;
     double m_dt;
+    // TEMPERATURE PARAMETER
     double m_λ;
+    // NUMBER OF EPISODES
     int m_M;
+    // SAMPLE SIZE
     int m_N;
+    // MARKET
     double m_ρ;
     double m_σ;
     double m_finalStep;
+    // POLICY
+    double m_piMean;
+    double m_piVar;
+    // COLLECTED SAMPLES
+    vector<vector<double>> m_D;
+    vector<double> m_finalWealths;
+    // RL PARAMETERS
+    vector <double> m_θ;
+    vector <double> m_φ;
+    double m_w;
 };
 
 #define COMMA               << "," << 
@@ -83,5 +100,6 @@ private:
 #define END_LINE            << endl;
 #define OUTPUT              output <<
 
+#define EMV CEMV
 
 #endif /* CEMV_hpp */

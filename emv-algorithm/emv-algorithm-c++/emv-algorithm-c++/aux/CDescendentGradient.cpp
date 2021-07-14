@@ -61,7 +61,7 @@ SDA::updateφ2()
 {
     // cout << "Before: " << m_φ2 << ", " << gradientφ2() << endl;
     m_φ2 -= m_ηφ * gradientφ2();
-    PRINT_DATA_LINE(gradientφ2(), m_φ2);
+    PRINT_DATA_LINE("Gradient:", gradientφ2(), "...", "φ:", m_φ2);
     
 }
 

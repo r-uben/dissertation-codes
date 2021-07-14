@@ -15,7 +15,7 @@
 
 using namespace std;
 
-CEMV::CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ)
+EMV::CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ)
 {
     m_α     = α;
     m_ηθ    = ηθ;
@@ -34,124 +34,125 @@ CEMV::CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, d
 
 // Main algorithm for learning the parameters
 void
-CEMV::EMV(vector<double>&θ, vector<double>&φ, double w)
+EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
 {
-    vector <double> finalWealths;
-    vector <vector<double>> D;
-    // cout << "k, " << 0 << endl;
-    // cout << "θ2, " << θ[2] << endl;
+    // Initial RL parameters
+    m_w = init_w;
+    m_θ = init_θ;
+    m_φ = init_φ;
+    // Write the collected sample in a .csv file
     ofstream output;
     output.open("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv");
-    OUTPUT "k" COMMA "t" COMMA "x" END_LINE
+    OUTPUT "k" COMMA "t" COMMA "u" COMMA "x" END_LINE
     // Initial sample
     for (int k = 1; k <= m_M; k++)
     {
-        cout << " ######### " << k << " ######### " << endl;
-        // cout << "θ3, " << θ[3] << ", " << "θ2, " << θ[2] << ", " << "θ1, " << θ[1] << ", "<<  "θ0, " << θ[0] << endl;
-        // cout << "k, " << k << endl;
         // Collected samples (complete path)
-        D = collectSamples(φ, w, k, output);
+        collectSamples(k, output);
         // Save Final Wealths
-        finalWealths.push_back(D.back()[1]);
+        m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ:
-        SDA parameters(m_ηθ, m_ηφ, m_z, m_λ, θ, φ, w, D);
-        parameters.updateAll();
-        θ = parameters.Getθ();
-        φ = parameters.Getφ();
-        // cout << "k = " << k << ", φ1 = " << φ[0] << ", φ2 = " << φ[1] << endl;
-        w = updateLagrange(w, k, finalWealths);
+        updateθandφ();
+        updateLagrange(k);
     }
     output.close();
-    cout << m_ρ * m_ρ << ", " << θ[3] << endl;
 }
 
-vector<vector<double>>
-CEMV::collectSamples(vector<double>&φ, double w, int k, ofstream &output)
+void
+EMV::collectSamples(int k, ofstream &output)
 {
     double t = 0., x = m_x0, u;
     vector <double> sample = { t, x };
-    OUTPUT k COMMA t COMMA x END_LINE
-    vector <vector <double>> D = { sample };
-    for ( int i = 1; i <= m_finalStep; i++)
+    OUTPUT k COMMA t COMMA "-" COMMA x END_LINE
+    m_D = { sample };
+    // Mean and Variance for the initial sample (recall that π depends on t, x and w.
+    piMean(x);
+    piVariance(t);
+    // Collect the sample
+    for ( int i = 1; i <= m_finalStep; i++ )
     {
-        // Mean and Variance
-        double mean = piMean(φ, x, w);
-        double var  = piVariance(φ, t);
-        // cout << "φ2 = " << φ[1] << ", mean = " << mean << ", variance = " << var << endl;
         // Distribution
         mt19937 rng;
-        normal_distribution<double> phi(mean,var);
+        normal_distribution<double> normal(m_piMean, m_piVar);
         // Update risky allocation, next time step and wealth
-        u = phi(rng);
+        u = normal(rng);
         t = i * m_dt;
         x = nextWealth(x, u);
-        OUTPUT k COMMA t COMMA x END_LINE
-//        cout << "mean: " << mean << " variance: " << var << endl;
-//        cout << "t = " << t << ", u = " << u  << " x = " << x << endl;
+        OUTPUT k COMMA t COMMA u COMMA x END_LINE
         sample = { t, x };
-        // cout << "t, " << t << ", u, " << u << ", x, " << x << endl;
-        D.push_back(sample);
+        m_D.push_back(sample);
+        // Update the Mean and Variance
+        piMean(x);
+        piVariance(t);
     }
-    return D;
 }
 
-double
-CEMV::piMean(vector<double>&φ, double x, double w)
+void
+EMV::piMean(double x)
 {
+    double φ1, φ2;
+    double first_factor, second_factor, coeff;
     // We want to calculate the mean of the distribution πφ
-    double piMean;
     // Each parameter of the vector of parameters to be learnt, φ
-    double φ1 = φ[0];
-    double φ2 = φ[1];
+    φ1 = m_φ[0];
+    φ2 = m_φ[1];
     // To  clean up the code we just separate the result into different factors
-    double first_factor    = sqrt( (2. * φ2) / (m_λ * PI) );
-    double second_factor   = exp( (2. * φ1 - 1.) / 2.);
-    double coeff           = - first_factor * second_factor;
+    first_factor    = sqrt( (2. * φ2) / (m_λ * PI) );
+    second_factor   = exp( (2. * φ1 - 1.) / 2.);
+    coeff           = - first_factor * second_factor;
     // Return the man of the policy (density)
-    piMean = coeff * (x - w);
-    return piMean;
+    m_piMean = coeff * (x - m_w);
 }
 
-double
-CEMV::piVariance(vector<double>&φ, double t)
+void
+EMV::piVariance(double t)
 {
+    double φ1, φ2;
+    double num_term, exp_term;
     // We want to calculate the variance of the distribution πφ
-    double piVar;
     // Each parameter of the list of parameters phi
-    double φ1 = φ[0];
-    double φ2 = φ[1];
+    φ1 = m_φ[0];
+    φ2 = m_φ[1];
     // To clean up the code we just separate the result into different factors
-    double num_term = 1. / (2. * PI);
-    double exp_term = exp(2. * φ2 * (m_T - t) + 2. * φ1 - 1.);
+    num_term = 1. / (2. * PI);
+    exp_term = exp(2. * φ2 * (m_T - t) + 2. * φ1 - 1.);
     // Return the variance of the policy (density)
-    piVar =  num_term * exp_term;
-    return piVar;
+    m_piVar =  num_term * exp_term;
 }
 
 double
-CEMV::nextWealth(double x, double u)
+EMV::nextWealth(double x, double u)
 {
-    double nextX;
+    double nextX, ε;
     static mt19937 rng;
     // Normal distribution
-    normal_distribution<double> phi(0.,1.);
-    double W = phi(rng);
+    normal_distribution<double> normal(0.,1.);
+    ε = normal(rng);
     // NextX
-    nextX = x + m_σ * u * (m_ρ * m_dt + W * sqrt(m_dt));
-    // cout << nextX << endl;
+    nextX = x + m_σ * u * (m_ρ * m_dt + ε * sqrt(m_dt));
     return nextX;
 }
 
-double 
-CEMV::updateLagrange(double w, int k, vector<double> &finalWealths)
+void
+CEMV::updateLagrange(int k)
 {
+    double mean_x;
     if (k % m_N == 0) {
-        double mean_x = 0;
+        mean_x = 0;
         for (int j = k - m_N + 1; j <= m_M; j++) {
-            mean_x += finalWealths[j];
+            mean_x += m_finalWealths[j];
         }
         mean_x /= m_N;
-        w -= m_α * ( mean_x - m_z);
+        m_w -= m_α * ( mean_x - m_z);
     }
-    return w;
+}
+
+void
+EMV::updateθandφ()
+{
+    // Update φ, θ:
+    SDA parameters(m_ηθ, m_ηφ, m_z, m_λ, m_θ, m_φ, m_w, m_D);
+    parameters.updateAll();
+    m_θ = parameters.Getθ();
+    m_φ = parameters.Getφ();
 }
