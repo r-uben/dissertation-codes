@@ -51,16 +51,19 @@ class CEMV
 {
 public:
     CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ);
-
+    
+    // EMV ALGORITHM
     void emv(vector<double>&init_θ, vector<double>&init_φ, double init_w);
     
 private:
     // SOME USEFUL FUNCTIONS
+    // SAMPLES
     void    collectSamples(int k, ofstream &output);
     void    piMean(double x);
     void    piVariance(double t);
     double  nextWealth(double x, double u);
-    void    updateθandφ();
+    // RL
+    void    updateSDEparameters();
     void    updateLagrange(int k);
     
     // VARIABLES AND PARAMETERS

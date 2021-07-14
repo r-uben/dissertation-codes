@@ -52,7 +52,7 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         // Save Final Wealths
         m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ:
-        updateθandφ();
+        updateSDEparameters();
         updateLagrange(k);
     }
     output.close();
