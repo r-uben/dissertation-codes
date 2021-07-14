@@ -51,7 +51,7 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         collectSamples(k, output);
         // Save Final Wealths
         m_finalWealths.push_back(m_D.back()[1]);
-        // Update φ, θ:
+        // Update φ, θ, w:
         updateSDEparameters();
         updateLagrange(k);
     }
@@ -148,7 +148,7 @@ CEMV::updateLagrange(int k)
 }
 
 void
-EMV::updateθandφ()
+EMV::updateSDEparameters()
 {
     // Update φ, θ:
     SDA parameters(m_ηθ, m_ηφ, m_z, m_λ, m_θ, m_φ, m_w, m_D);
