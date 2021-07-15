@@ -45,15 +45,6 @@ class EMV(object):
         self.ϕ  = [self.ϕ1, self.ϕ2]
         self.w  = 1
 
-    def __take_row_(self, D, k):
-        D_k = []
-        for key in D:
-            if key == k:
-                D_k.append(D[key])
-            else:
-                print('There is not such a key')
-        return D_k
-
     def __pi_mean_(self, x):
         # To clean up the code we just separate the result into different factors
         first_factor    = np.sqrt( (2 * self.ϕ2) / (self.λ * np.pi))
@@ -75,7 +66,7 @@ class EMV(object):
         ''' 
             This function calculates the value function for a certain wealth in a certain moment    
         '''
-        first_term  = (x - self.w) ** 2 * np.exp( -self.θ3 * (self.T - t))
+        first_term  = ((x - self.w) ** 2) * np.exp( -self.θ3 * (self.T - t))
         second_term = self.θ2 * t ** 2
         third_term  = self.θ1 * t
         fourth_term = self.θ0
@@ -98,7 +89,41 @@ class EMV(object):
         return diff_V_i
 
     def __H_(self, t):
-        return self.ϕ1 + self.ϕ2 * (self.T - t)
+        return self.old_ϕ1 + self.old_ϕ2 * (self.T - t)
+
+    def __next_wealth_(self, prev_x, prev_u):
+        '''
+            This function calculates the (total) wealth of an investor from the previous wealth
+            and the current amount invested in the risky asset which has been determined following
+            the EMV-algorithm.
+        '''
+        W = np.random.normal(0, 1)
+        next_wealth = prev_x + self.σ * prev_u * (self.ρ * self.dt + W * np.sqrt(self.dt))
+        return next_wealth
+
+    def __collect_samples_(self):
+        # Initial state
+        x = self.x_0
+        # Initial time
+        t = 0
+        # Initial sample
+        init_sample = [t, x]
+        # Collected samples set
+        D = [init_sample]
+        # Sample (t_i, x_i) from Market under πϕ:
+        for i in range(1, self.final_step + 1):
+            # Mean and variance
+            pi_mean     = self.__pi_mean_(x)
+            pi_variance = self.__pi_variance_(t)
+            # u_i
+            u  = np.random.normal(pi_mean, pi_variance)
+            # t_i
+            t  = i * self.dt
+            # x_{t_i}
+            x  = self.__next_wealth_(x, u)
+            # Collected samples
+            D.append([t,x])
+        return D
 
     def __gradC_θ1_(self, D):
         sum = 0
@@ -130,49 +155,16 @@ class EMV(object):
         for i in range(len(D)-1):
             diff_V_i        = self.__diff_V_i_(D, i)
             t_i             = D[i][0]
-            x_i             = D[i][0]
+            x_i             = D[i][1]
             t_i_plus        = D[i+1][0]
-            x_i_plus        = D[i+1][0]
+            x_i_plus        = D[i+1][1]
             first_factor    = (diff_V_i - self.λ * self.__H_(t_i)) * self.dt
-            first_num_2nd_factor  = (x_i_plus - self.w) ** 2 * np.exp(-2 * self.ϕ1 * (self.T - t_i_plus)) * (self.T - t_i_plus)
-            second_num_2nd_factor = (x_i - self.w) ** 2 * np.exp(-2 * self.ϕ1 * (self.T - t_i)) * (self.T - t_i)
-            num_2nd_factor  = - 2 * (first_num_2nd_factor - second_num_2nd_factor)
-            second_factor   = num_2nd_factor / self.dt - self.λ * (self.T - t_i)
+            first_num_2nd_factor  = (x_i_plus - self.w) ** 2 * np.exp( -2 * self.old_ϕ2 * (self.T - t_i_plus) ) * (self.T - t_i_plus)
+            second_num_2nd_factor = (x_i - self.w) ** 2 * np.exp(-2 * self.old_ϕ2 * (self.T - t_i)) * (self.T - t_i)
+            num_2nd_factor  =  2 * (first_num_2nd_factor - second_num_2nd_factor)
+            second_factor   = - num_2nd_factor / self.dt - self.λ * (self.T - t_i)
             sum += first_factor * second_factor
         return sum
-
-    def __next_wealth_(self, prev_x, prev_u):
-        '''
-            This function calculates the (total) wealth of an investor from the previous wealth
-            and the current amount invested in the risky asset which has been determined following
-            the EMV-algorithm.
-        '''
-        W = np.random.normal(0, 1)
-        return prev_x + self.σ * prev_u * (self.ρ * self.dt + W * np.sqrt(self.dt))
-
-    def __collect_samples_(self):
-        # Initial state
-        x = self.x_0
-        # Initial time
-        t = 0
-        # Initial sample
-        init_sample = [t, x]
-        # Collected samples set
-        D = [init_sample]
-        # Sample (t_i, x_i) from Market under πϕ:
-        for i in range(1, self.final_step):
-            # Mean and variance
-            pi_mean     = self.__pi_mean_(x)
-            pi_variance = self.__pi_variance_(t)
-            # u_i
-            u  = np.random.normal(pi_mean, pi_variance)
-            # t_i
-            t  = i * self.dt
-            # x_{t_i}
-            x  = self.__next_wealth_(x, u)
-            # Collected samples
-            D.append([t,x])
-        return D
 
     def __update_θ0_(self):
         return - self.θ2 * self.T ** 2 - self.θ1 * self.T - (self.w - self.z) ** 2
@@ -181,7 +173,7 @@ class EMV(object):
         return self.old_θ1 - self.ηθ * self.__gradC_θ1_(D)
 
     def __update_θ2_(self, D):
-        return self.old_θ2 - self.ηθ* self.__gradC_θ2_(D)
+        return self.old_θ2 - self.ηθ * self.__gradC_θ2_(D)
     
     def __update_θ3_(self):
         return 2 * self.ϕ2
@@ -190,7 +182,8 @@ class EMV(object):
         return self.old_ϕ1 - self.ηϕ * self.__gradC_ϕ1_( D)
     
     def __update_ϕ2_(self,  D):
-        return self.old_ϕ2 - self.ηϕ * self.__gradC_ϕ2_(D)
+        grad = self.__gradC_ϕ2_(D)
+        return self.old_ϕ2 - self.ηϕ * grad
 
     def __update_SDA_(self, D):
         # θ1, θ2
@@ -210,6 +203,10 @@ class EMV(object):
         self.old_θ3 = self.θ3
         self.old_ϕ1 = self.ϕ1
         self.old_ϕ2 = self.ϕ2
+
+        # vectors
+        self.θ  = [self.θ0, self.θ1, self.θ2, self.θ3]
+        self.ϕ  = [self.ϕ1, self.ϕ2]
         return self.θ, self.ϕ
 
     def __update_w_(self, k, final_wealths):
@@ -222,9 +219,9 @@ class EMV(object):
         return self.w
 
     def EMV(self):
-        theta = [1,1,1,1]
-        phi   = [1,1]
-        w     = 1
+        theta = [0,0,0,0]
+        phi   = [0,0]
+        w     = 0
         # Vector of final wealths (states)
         final_wealths = []
         # Number of iterations
