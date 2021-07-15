@@ -60,6 +60,7 @@ void
 SDA::updateφ1()
 {
     m_φ1 = m_Oldφ1 - m_ηφ * gradientφ1();
+    PRINT_DATA_LINE("Old:", m_Oldφ1, "... ", "∂_{θ1}C:", gradientφ1(), "... ", "We substract:", m_ηφ * gradientφ1(),"... ", "φ:", m_φ1);
 }
 
 void
@@ -188,7 +189,7 @@ SDA::diffV(int i)
     diffNum = V(NEXTt, NEXTx) - V(t, x);
     // Aproximate derivative
     diffVi  = diffNum / m_dt;
-    // PRINT_DATA_LINE("State:", x, "... ", "Next State:", NEXTx, "... ", "Value Difference:", diffNum);
-    // PRINT_DATA_LINE("############");
+    PRINT_DATA_LINE("State:", x, "... ", "Next State:", NEXTx, "... ", "Value Difference:", diffNum);
+    PRINT_DATA_LINE("############");
     return diffVi;
 }

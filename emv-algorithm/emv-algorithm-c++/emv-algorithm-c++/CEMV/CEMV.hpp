@@ -66,6 +66,8 @@ private:
     // RL
     void    updateSDEparameters();
     void    updateLagrange(int k);
+    // AUX
+    void    θ3Error();
     
     // VARIABLES AND PARAMETERS
     // LEARNING RATES
@@ -99,6 +101,8 @@ private:
     double m_w;
     // RANDOM NUMBER GENERATOR
     mt19937 m_random;
+    //
+    double m_θ3error;
 };
 
 // SOME MACROS FORO PRINTING DATA

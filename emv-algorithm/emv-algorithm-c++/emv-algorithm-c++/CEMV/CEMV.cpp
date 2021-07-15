@@ -55,14 +55,17 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
     // Run
     for (int k = 1; k <= m_M; k++)
     {
+        START_LINE TAG("φ1") m_φ[0] COMMA TAG(" φ2") m_φ[1] END_LINE
         // Collected samples (complete path)
         collectSamples(k, output);
         // Save Final Wealths
         m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ, w:
         updateSDEparameters();
-        START_LINE TAG("k") m_M COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] END_LINE
-
+        // Calculate the Error between ρ^2 and θ3
+        θ3Error();
+        START_LINE TAG("k") k COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] COMMA TAG(" Error") m_θ3error END_LINE
+        START_LINE "############################################" END_LINE
         // Provisionoal control for the φ1 being negative
         if (m_φ[0] < 0) PRINT("φ1 is negative")
         // Update Lagrange
@@ -168,4 +171,10 @@ EMV::updateSDEparameters()
     parameters.updateAll();
     m_θ = parameters.Getθ();
     m_φ = parameters.Getφ();
+}
+
+void
+EMV::θ3Error()
+{
+    m_θ3error = abs(m_θ[3] - m_ρ * m_ρ) / m_ρ / m_ρ;
 }
