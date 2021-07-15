@@ -50,18 +50,25 @@ if __name__== "__main__":
     rel_errors_rho  = []
 
     df = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv")
-    print(df)
-    t = df["t"]
-    x = df["x"]
-    for k in range(1,6):
-        t = []
-        x = []
-        for index, row in df.iterrows():
-            if row['k'] == k:
-                t.append(row['t'])
-                x.append(row['x'])
-        plt.plot(t,x)
+    df2 = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/squared_rho_approximations.csv")
+    k  = df2["k"]
+    θ3 = df2["θ3"]
+    ρ  = df2["ρ^2"]
+    error = df2["Error"]
+    plt.plot(k, error)
+    # plt.plot(k, ρ)
     plt.show()
+    #t = df["t"]
+    #x = df["x"]
+    #for k in range(1,6):
+    #    t = []
+    #   x = []
+    #    for index, row in df.iterrows():
+    #       if row['k'] == k:
+    #            t.append(row['t'])
+    #           x.append(row['x'])
+    #    plt.plot(t,x)
+    # pslt.show()
 
     # data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)
     # theta, phi, w = data.EMV()
@@ -75,3 +82,6 @@ if __name__== "__main__":
     #rel_errors_rho.append(rel_error_rho)
     #num_samples.append(M)
     #plt.plot(num_samples,rel_errors_rho, marker='x', color='red')
+
+
+

@@ -32,7 +32,7 @@ EMV::CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, do
     m_λ     = λ;
     // NUMBER OF EPISODES
     m_M     = M;
-    // SAMPLE SIZEs
+    // SAMPLE SIZE
     m_N     = N;
     // MARKET
     m_ρ     = ρ;
@@ -48,13 +48,22 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
     m_θ = init_θ;
     m_φ = init_φ;
     // Write the collected sample in a .csv file
-    ofstream output;
+    ofstream output, output2;
+    // Wealth processes
     output.open("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv");
+    // Approximation of ρ^2
+    output2.open("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/squared_rho_approximations.csv");
     // Title
-    OUTPUT "k" COMMA "t" COMMA "u" COMMA "x" END_LINE
+    OUTPUT  "k" COMMA "t" COMMA "u" COMMA "x" END_LINE
+    OUTPUT2 "k" COMMA "ρ^2" COMMA "θ3" COMMA "Error" END_LINE
     // Run
     for (int k = 1; k <= m_M; k++)
     {
+        START_LINE "######################  " << k << "   ######################" END_LINE
+        // Calculate the Error between ρ^2 and θ3
+        θ3Error();
+        OUTPUT2 k COMMA pow(m_ρ,2) COMMA m_θ[3] COMMA m_θ3error END_LINE
+        START_LINE TAG("ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] COMMA TAG(" Error") m_θ3error END_LINE
         START_LINE TAG("φ1") m_φ[0] COMMA TAG(" φ2") m_φ[1] END_LINE
         // Collected samples (complete path)
         collectSamples(k, output);
@@ -62,16 +71,18 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ, w:
         updateSDEparameters();
-        // Calculate the Error between ρ^2 and θ3
-        θ3Error();
-        START_LINE TAG("k") k COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] COMMA TAG(" Error") m_θ3error END_LINE
-        START_LINE "############################################" END_LINE
+        START_LINE "###################################################" END_LINE
         // Provisionoal control for the φ1 being negative
-        if (m_φ[0] < 0) PRINT("φ1 is negative")
+        if (m_φ[0] < 0 or m_φ[0] == NAN)
+        {
+            PRINT("WARNING")
+            break;
+        }
         // Update Lagrange
         updateLagrange(k);
     }
     output.close();
+    output2.close();
     START_LINE " FINAL ANSWER " END_LINE
     START_LINE TAG("k") m_M COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] END_LINE
 }
@@ -91,11 +102,12 @@ EMV::collectSamples(int k, ofstream &output)
     {
         // Distribution
         normal_distribution<double> normal(m_piMean, m_piVar);
+        // START_LINE m_piMean COMMA m_piVar END_LINE
         // Update risky allocation, next time step and wealth
         u = normal(m_random);
         t = i * m_dt;
         x = nextWealth(x, u);
-         OUTPUT k COMMA t COMMA u COMMA x END_LINE
+        OUTPUT k COMMA t COMMA u COMMA x END_LINE
         sample = { t, x };
         m_D.push_back(sample);
         // Update the Mean and Variance
@@ -152,14 +164,17 @@ EMV::nextWealth(double x, double u)
 void
 EMV::updateLagrange(int k)
 {
+    
+    // Save Final Wealths
+    m_finalWealths.push_back(m_D.back()[1]);
     double mean_x;
     if (k % m_N == 0) {
-        mean_x = 0;
-        for (int j = k - m_N + 1; j <= m_M; j++) {
+        mean_x = 0.;
+        for (int j = k - m_N + 1; j <= k; j++) {
             mean_x += m_finalWealths[j];
         }
         mean_x /= m_N;
-        m_w -= m_α * ( mean_x - m_z);
+        m_w -= m_α * ( mean_x - m_z );
     }
 }
 

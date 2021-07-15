@@ -60,7 +60,7 @@ void
 SDA::updateφ1()
 {
     m_φ1 = m_Oldφ1 - m_ηφ * gradientφ1();
-    PRINT_DATA_LINE("Old:", m_Oldφ1, "... ", "∂_{θ1}C:", gradientφ1(), "... ", "We substract:", m_ηφ * gradientφ1(),"... ", "φ:", m_φ1);
+    // PRINT_DATA_LINE("Old:", m_Oldφ1, "... ", "∂_{θ1}C:", gradientφ1(), "... ", "We substract:", m_ηφ * gradientφ1(),"... ", "φ:", m_φ1);
 }
 
 void
@@ -139,6 +139,7 @@ double
 SDA::gradientφ2()
 {
     double diffVi, t, x, NEXTt, NEXTx, sum = 0.;
+    cout << m_D.size() << endl;
     for (int i = 0; i < m_N; i++)
     {
         diffVi  = diffV(i);
@@ -146,12 +147,14 @@ SDA::gradientφ2()
         x       = m_D[i][1];
         NEXTt   = m_D[i+1][0];
         NEXTx   = m_D[i+1][1];
+//        PRINT_DATA_LINE("x", x, "NEXTx", NEXTx);
         double firstFactor  =  (diffVi - m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t))) * m_dt;
         double secondFactorNumFirstSum  = (NEXTx - m_w) * (NEXTx - m_w) * exp(-2. * m_Oldφ2 * (m_T - NEXTt)) * (m_T - NEXTt);
         double secondFactorNumSecondSum = (x - m_w) * (x - m_w) * exp(-2. * m_Oldφ2 * (m_T - t)) * (m_T - t);
         double secondFactorNum = secondFactorNumFirstSum - secondFactorNumSecondSum;
         double secondFactor = -2. * secondFactorNum / m_dt - m_λ * (m_T - t);
-        // PRINT_DATA_LINE("Approximate Derivative:", diffVi, "... ", "Relax. Term:", m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t)));
+//        PRINT_DATA_LINE("Approximate Derivative:", diffVi, "... ", "Relax. Term:", m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t)));
+        // cout << sum << endl;
         sum += firstFactor * secondFactor;
     }
     return sum;
@@ -166,7 +169,8 @@ SDA::V(double t, double x)
     double third_term  = m_Oldθ1 * t;
     double fourth_term = m_Oldθ0;
     V = first_term + second_term + third_term + fourth_term;
-    // PRINT_DATA_LINE("θ3", m_Oldθ3, "θ2", m_Oldθ2, "θ1", m_Oldθ1, "θ0", m_Oldθ0);
+    // PRINT_DATA_LINE((x - m_w), (x - m_w)* (x - m_w), exp( -m_Oldθ3 * (m_T - t)));
+    // RPRINT_DATA_LINE("θ3", m_Oldθ3, "θ2", m_Oldθ2, "θ1", m_Oldθ1, "θ0", m_Oldθ0);
     // PRINT_DATA_LINE("1st Term:", first_term, "2nd Term:", second_term, "3th Term:", third_term, "4th Term:", fourth_term);
     // PRINT_DATA_LINE("###");
     // PRINT_DATA_LINE(m_θ3, exp( -m_θ3 * (m_T - t)));
@@ -189,7 +193,7 @@ SDA::diffV(int i)
     diffNum = V(NEXTt, NEXTx) - V(t, x);
     // Aproximate derivative
     diffVi  = diffNum / m_dt;
-    PRINT_DATA_LINE("State:", x, "... ", "Next State:", NEXTx, "... ", "Value Difference:", diffNum);
-    PRINT_DATA_LINE("############");
+    // PRINT_DATA_LINE("State:", x, "... ", "Next State:", NEXTx, "... ", "Value Difference:", diffNum);
+    // PRINT_DATA_LINE("############");
     return diffVi;
 }

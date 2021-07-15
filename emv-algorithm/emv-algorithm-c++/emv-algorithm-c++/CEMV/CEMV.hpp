@@ -111,6 +111,7 @@ private:
 #define START_LINE          cout <<
 #define END_LINE            << endl;
 #define OUTPUT              output <<
+#define OUTPUT2             output2 <<
 
 // CLASS NAME
 #define EMV CEMV
