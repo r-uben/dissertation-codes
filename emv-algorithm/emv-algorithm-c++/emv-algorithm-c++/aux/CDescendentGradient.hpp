@@ -51,6 +51,12 @@ private:
     double m_finalStep;
     vector<double> m_φ;
     vector<double> m_θ;
+    double m_Oldφ1;
+    double m_Oldφ2;
+    double m_Oldθ0;
+    double m_Oldθ1;
+    double m_Oldθ2;
+    double m_Oldθ3;
     double m_φ1;
     double m_φ2;
     double m_θ0;

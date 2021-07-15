@@ -13,23 +13,30 @@
 #include <iostream>
 #include <vector>
 
+
 using namespace std;
 
 EMV::CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ)
 {
+    // LEARNING RATES
     m_α     = α;
     m_ηθ    = ηθ;
     m_ηφ    = ηφ;
+    // PORTFOLIO AND ITS TARGETS
     m_x0    = x0;
     m_z     = z;
     m_T     = T;
     m_dt    = dt;
+    m_finalStep = int(floor(m_T / m_dt));
+    // TEMPERATURE PARAMETER
     m_λ     = λ;
+    // NUMBER OF EPISODES
     m_M     = M;
+    // SAMPLE SIZEs
     m_N     = N;
+    // MARKET
     m_ρ     = ρ;
     m_σ     = σ;
-    m_finalStep = int(floor(m_T / m_dt));
 }
 
 // Main algorithm for learning the parameters
@@ -43,8 +50,9 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
     // Write the collected sample in a .csv file
     ofstream output;
     output.open("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv");
+    // Title
     OUTPUT "k" COMMA "t" COMMA "u" COMMA "x" END_LINE
-    // Initial sample
+    // Run
     for (int k = 1; k <= m_M; k++)
     {
         // Collected samples (complete path)
@@ -53,18 +61,24 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ, w:
         updateSDEparameters();
+        START_LINE TAG("k") m_M COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] END_LINE
+
+        // Provisionoal control for the φ1 being negative
+        if (m_φ[0] < 0) PRINT("φ1 is negative")
+        // Update Lagrange
         updateLagrange(k);
     }
     output.close();
-    cout << "ρ^2: " << m_ρ * m_ρ << ", θ3: " << m_θ[3] << endl;
+    START_LINE " FINAL ANSWER " END_LINE
+    START_LINE TAG("k") m_M COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] END_LINE
 }
 
 void
 EMV::collectSamples(int k, ofstream &output)
 {
     double t = 0., x = m_x0, u;
-    vector <double> sample = { t, x };
     OUTPUT k COMMA t COMMA "-" COMMA x END_LINE
+    vector <double> sample = { t, x };
     m_D = { sample };
     // Mean and Variance for the initial sample (recall that π depends on t, x and w.
     piMean(x);
@@ -73,13 +87,12 @@ EMV::collectSamples(int k, ofstream &output)
     for ( int i = 1; i <= m_finalStep; i++ )
     {
         // Distribution
-        mt19937 rng;
         normal_distribution<double> normal(m_piMean, m_piVar);
         // Update risky allocation, next time step and wealth
-        u = normal(rng);
+        u = normal(m_random);
         t = i * m_dt;
         x = nextWealth(x, u);
-        OUTPUT k COMMA t COMMA u COMMA x END_LINE
+         OUTPUT k COMMA t COMMA u COMMA x END_LINE
         sample = { t, x };
         m_D.push_back(sample);
         // Update the Mean and Variance
@@ -125,10 +138,9 @@ double
 EMV::nextWealth(double x, double u)
 {
     double nextX, ε;
-    static mt19937 rng;
     // Normal distribution
     normal_distribution<double> normal(0.,1.);
-    ε = normal(rng);
+    ε = normal(m_random);
     // NextX
     nextX = x + m_σ * u * (m_ρ * m_dt + ε * sqrt(m_dt));
     return nextX;

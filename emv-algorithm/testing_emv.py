@@ -53,7 +53,14 @@ if __name__== "__main__":
     print(df)
     t = df["t"]
     x = df["x"]
-    plt.plot(t, x)
+    for k in range(1,6):
+        t = []
+        x = []
+        for index, row in df.iterrows():
+            if row['k'] == k:
+                t.append(row['t'])
+                x.append(row['x'])
+        plt.plot(t,x)
     plt.show()
 
     # data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)

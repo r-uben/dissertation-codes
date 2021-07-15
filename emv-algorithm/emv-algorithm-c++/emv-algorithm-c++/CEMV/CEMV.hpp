@@ -14,6 +14,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <random>
 #define PI atan(1)*4
 using namespace std;
 
@@ -53,7 +54,7 @@ public:
     CEMV(double α, double ηθ, double ηφ, double x0, double z, double T, double dt, double λ, double M, double N, double ρ, double σ);
     
     // EMV ALGORITHM
-    void emv(vector<double>&init_θ, vector<double>&init_φ, double init_w);
+    void    emv(vector<double>&init_θ, vector<double>&init_φ, double init_w);
     
 private:
     // SOME USEFUL FUNCTIONS
@@ -76,33 +77,38 @@ private:
     double m_z;
     double m_T;
     double m_dt;
+    vector<double> m_finalWealths;
     // TEMPERATURE PARAMETER
     double m_λ;
     // NUMBER OF EPISODES
     int m_M;
     // SAMPLE SIZE
     int m_N;
+    double m_finalStep;
     // MARKET
     double m_ρ;
     double m_σ;
-    double m_finalStep;
     // POLICY
     double m_piMean;
     double m_piVar;
     // COLLECTED SAMPLES
     vector<vector<double>> m_D;
-    vector<double> m_finalWealths;
     // RL PARAMETERS
     vector <double> m_θ;
     vector <double> m_φ;
     double m_w;
+    // RANDOM NUMBER GENERATOR
+    mt19937 m_random;
 };
 
-#define COMMA               << "," << 
+// SOME MACROS FORO PRINTING DATA
+#define COMMA               << "," <<
+#define TAG(a)              (a) << ": " <<
 #define START_LINE          cout <<
 #define END_LINE            << endl;
 #define OUTPUT              output <<
 
+// CLASS NAME
 #define EMV CEMV
 
 #endif /* CEMV_hpp */
