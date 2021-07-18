@@ -98,6 +98,12 @@ private:
     // RL PARAMETERS
     vector <double> m_θ;
     vector <double> m_φ;
+    double m_φ1;
+    double m_φ2;
+    double m_θ0;
+    double m_θ1;
+    double m_θ2;
+    double m_θ3;
     double m_w;
     // RANDOM NUMBER GENERATOR
     mt19937 m_random;
@@ -112,6 +118,7 @@ private:
 #define END_LINE            << endl;
 #define OUTPUT              output <<
 #define OUTPUT2             output2 <<
+#define KTH_ITERATION(k)    START_LINE "######################  " << (k) << "   ######################" END_LINE
 
 // CLASS NAME
 #define EMV CEMV

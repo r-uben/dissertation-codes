@@ -28,6 +28,7 @@ private:
     // VALUE FUNCTION AND DERIVATIVE VALUE FUNCTION APPROXIMATION
     double V(double t, double x);
     double diffV(int i);
+    double H(double t);
     // UPDATE FUNCTIONS
     void updateθ0();
     void updateθ1();

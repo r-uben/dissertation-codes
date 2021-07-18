@@ -88,10 +88,20 @@ SDA::updateAll()
     // Depending on previous parameters
     updateθ3();
     updateθ0();
+    cout << m_θ0 << ", " << m_θ1 << ", " << m_θ2 << ", " << m_θ3 << ", " << m_φ1 << ", " << m_φ2 << endl;
     // Keep them
     m_θ = { m_θ0, m_θ1, m_θ2, m_θ3 };
     m_φ = { m_φ1, m_φ2 };
 }
+
+
+// ENTROPY
+double
+SDA::H(double t)
+{
+    return m_Oldφ1 + m_Oldφ2 * (m_T - t);
+}
+
 
 // GRADIENT FUNCTIONS AND MORE STUFF
 
@@ -103,7 +113,7 @@ SDA::gradientθ1()
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
-        sum += (diffVi - m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t))) * m_dt;
+        sum += (diffVi - m_λ * H(t)) * m_dt;
     }
     return sum;
 }
@@ -117,7 +127,7 @@ SDA::gradientθ2()
         diffVi  = diffV(i);
         t       = m_D[i][0];
         nextt   = m_D[i+1][0];
-        sum += (diffVi - m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t))) * ( nextt * nextt - t * t );
+        sum += (diffVi - m_λ * H(t)) * ( nextt * nextt - t * t );
     }
     return sum;
 }
@@ -130,7 +140,7 @@ SDA::gradientφ1()
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
-        sum += (diffVi - m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t))) * m_dt;
+        sum += (diffVi - m_λ * H(t)) * m_dt;
     }
     return - m_λ * sum;
 }
@@ -139,7 +149,8 @@ double
 SDA::gradientφ2()
 {
     double diffVi, t, x, NEXTt, NEXTx, sum = 0.;
-    cout << m_D.size() << endl;
+    double firstFactor;
+    double secondFactor, secondFactorNumFirstSum, secondFactorNumSecondSum, secondFactorNum;
     for (int i = 0; i < m_N; i++)
     {
         diffVi  = diffV(i);
@@ -148,13 +159,13 @@ SDA::gradientφ2()
         NEXTt   = m_D[i+1][0];
         NEXTx   = m_D[i+1][1];
 //        PRINT_DATA_LINE("x", x, "NEXTx", NEXTx);
-        double firstFactor  =  (diffVi - m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t))) * m_dt;
-        double secondFactorNumFirstSum  = (NEXTx - m_w) * (NEXTx - m_w) * exp(-2. * m_Oldφ2 * (m_T - NEXTt)) * (m_T - NEXTt);
-        double secondFactorNumSecondSum = (x - m_w) * (x - m_w) * exp(-2. * m_Oldφ2 * (m_T - t)) * (m_T - t);
-        double secondFactorNum = secondFactorNumFirstSum - secondFactorNumSecondSum;
-        double secondFactor = -2. * secondFactorNum / m_dt - m_λ * (m_T - t);
-//        PRINT_DATA_LINE("Approximate Derivative:", diffVi, "... ", "Relax. Term:", m_λ * (m_Oldφ1 + m_Oldφ2 * (m_T - t)));
-        // cout << sum << endl;
+        firstFactor  =  (diffVi - m_λ * H(t)) * m_dt;
+        secondFactorNumFirstSum  = (NEXTx - m_w) * (NEXTx - m_w) * exp(-2. * m_Oldφ2 * (m_T - NEXTt)) * (m_T - NEXTt);
+        secondFactorNumSecondSum = (x - m_w) * (x - m_w) * exp(-2. * m_Oldφ2 * (m_T - t)) * (m_T - t);
+        secondFactorNum = secondFactorNumFirstSum - secondFactorNumSecondSum;
+        secondFactor = -2. * secondFactorNum / m_dt - m_λ * (m_T - t);
+        PRINT_DATA_LINE("Approximate Derivative:", diffVi, "... ", "Relax. Term:", m_λ * H(t));
+        // cout << sum << ensdl;
         sum += firstFactor * secondFactor;
     }
     return sum;
@@ -162,19 +173,13 @@ SDA::gradientφ2()
 
 double
 SDA::V(double t, double x)
-{
-    double V;
-    double first_term  = (x - m_w) * (x - m_w) * exp( -m_Oldθ3 * (m_T - t));
-    double second_term = m_Oldθ2 * t * t;
-    double third_term  = m_Oldθ1 * t;
-    double fourth_term = m_Oldθ0;
+{   double V;
+    double first_term, second_term, third_term, fourth_term;
+    first_term  = (x - m_w) * (x - m_w) * exp( -m_Oldθ3 * (m_T - t));
+    second_term = m_Oldθ2 * t * t;
+    third_term  = m_Oldθ1 * t;
+    fourth_term = m_Oldθ0;
     V = first_term + second_term + third_term + fourth_term;
-    // PRINT_DATA_LINE((x - m_w), (x - m_w)* (x - m_w), exp( -m_Oldθ3 * (m_T - t)));
-    // RPRINT_DATA_LINE("θ3", m_Oldθ3, "θ2", m_Oldθ2, "θ1", m_Oldθ1, "θ0", m_Oldθ0);
-    // PRINT_DATA_LINE("1st Term:", first_term, "2nd Term:", second_term, "3th Term:", third_term, "4th Term:", fourth_term);
-    // PRINT_DATA_LINE("###");
-    // PRINT_DATA_LINE(m_θ3, exp( -m_θ3 * (m_T - t)));
-    // cout << t << ", " << m_θ1 << "," endl;
     return V;
 }
 
