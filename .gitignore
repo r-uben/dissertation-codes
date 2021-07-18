@@ -426,6 +426,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-wealth_process.csv
-wealth_process.csv
