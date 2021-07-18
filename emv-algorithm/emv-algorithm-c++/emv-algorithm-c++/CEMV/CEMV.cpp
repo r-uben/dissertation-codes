@@ -59,19 +59,22 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
     // Run
     for (int k = 1; k <= m_M; k++)
     {
-        START_LINE "######################  " << k << "   ######################" END_LINE
+//        START_LINE "######################  " << k << "   ######################" END_LINE
         // Calculate the Error between ρ^2 and θ3
         θ3Error();
         OUTPUT2 k COMMA pow(m_ρ,2) COMMA m_θ[3] COMMA m_θ3error END_LINE
         START_LINE TAG("ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] COMMA TAG(" Error") m_θ3error END_LINE
         START_LINE TAG("φ1") m_φ[0] COMMA TAG(" φ2") m_φ[1] END_LINE
+        OUTPUT2    k                     COMMA pow(m_ρ,2)        COMMA m_θ[3]                  COMMA m_θ3error END_LINE
+//        START_LINE TAG("ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] COMMA TAG(" Error") m_θ3error END_LINE
+//        START_LINE TAG("φ1") m_φ[0]      COMMA TAG(" φ2") m_φ[1] END_LINE
         // Collected samples (complete path)
         collectSamples(k, output);
         // Save Final Wealths
         m_finalWealths.push_back(m_D.back()[1]);
         // Update φ, θ, w:
         updateSDEparameters();
-        START_LINE "###################################################" END_LINE
+//        START_LINE "###################################################" END_LINE
         // Provisionoal control for the φ1 being negative
         if (m_φ[0] < 0 or m_φ[0] == NAN)
         {
@@ -83,7 +86,7 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
     }
     output.close();
     output2.close();
-    START_LINE " FINAL ANSWER " END_LINE
+    START_LINE "FINAL ANSWER " END_LINE
     START_LINE TAG("k") m_M COMMA TAG(" ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ[3] END_LINE
 }
 
@@ -101,7 +104,7 @@ EMV::collectSamples(int k, ofstream &output)
     for ( int i = 1; i <= m_finalStep; i++ )
     {
         // Distribution
-        normal_distribution<double> normal(m_piMean, m_piVar);
+        normal_distribution<double> normal(m_piMean, sqrt(m_piVar));
         // START_LINE m_piMean COMMA m_piVar END_LINE
         // Update risky allocation, next time step and wealth
         u = normal(m_random);
@@ -175,6 +178,7 @@ EMV::updateLagrange(int k)
         }
         mean_x /= m_N;
         m_w -= m_α * ( mean_x - m_z );
+        PRINT(m_w)
     }
 }
 

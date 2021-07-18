@@ -28,15 +28,15 @@ if __name__== "__main__":
 
     r = 0.02
 
-    mu = 0.1
+    mu = 0.5
     sigma  = 0.1
     ρ = (mu - r) / sigma
 
     x_0 = 1
     z = 1.4
 
-    M = 200
-    N = 10
+    M = 20000
+    N = 20
     λ = 2
     ηθ = 0.0005
     ηφ = ηθ
@@ -49,15 +49,19 @@ if __name__== "__main__":
     num_samples = []
     rel_errors_rho  = []
 
-    df = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv")
-    df2 = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/squared_rho_approximations.csv")
-    k  = df2["k"]
-    θ3 = df2["θ3"]
-    ρ  = df2["ρ^2"]
-    error = df2["Error"]
-    plt.plot(k, error)
+    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)
+    theta, phi, w = data.EMV()
+
+    # df = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/wealth_process.csv")
+    # df2 = pd.read_csv("/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data/squared_rho_approximations.csv")
+    # k  = df2["k"]
+    # θ3 = df2["θ3"]
+    # ρ  = df2["ρ^2"]
+    # error = df2["Error"]
+    # plt.plot(k, error)
     # plt.plot(k, ρ)
-    plt.show()
+    # 
+    # plt.show()
     #t = df["t"]
     #x = df["x"]
     #for k in range(1,6):
