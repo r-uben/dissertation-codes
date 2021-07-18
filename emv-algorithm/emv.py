@@ -44,6 +44,7 @@ class EMV(object):
         self.θ  = [self.θ0, self.θ1, self.θ2, self.θ3]
         self.ϕ  = [self.ϕ1, self.ϕ2]
         self.w  = 1
+        self.final_wealths = []
 
     def __pi_mean_(self, x):
         # To clean up the code we just separate the result into different factors
@@ -116,13 +117,17 @@ class EMV(object):
             pi_mean     = self.__pi_mean_(x)
             pi_variance = self.__pi_variance_(t)
             # u_i
-            u  = np.random.normal(pi_mean, pi_variance)
+            # We must calculate the standard deviation, because np.random.normal asks for it 
+            # instead of the variance
+            pi_std = np.sqrt(pi_variance)
+            u  = np.random.normal(pi_mean, pi_std)
             # t_i
             t  = i * self.dt
             # x_{t_i}
             x  = self.__next_wealth_(x, u)
             # Collected samples
             D.append([t,x])
+        self.final_wealths.append(x)
         return D
 
     def __gradC_θ1_(self, D):
@@ -209,14 +214,17 @@ class EMV(object):
         self.ϕ  = [self.ϕ1, self.ϕ2]
         return self.θ, self.ϕ
 
-    def __update_w_(self, k, final_wealths):
-        if k % self.N == 0:
+    def __update_w_(self, k):
+        if k >= self.N:
             mean_x = 0
             for j in range(k - self.N + 1, k):
-                mean_x += final_wealths[j]
+                mean_x += self.final_wealths[j]
             mean_x /= self.N 
             self.w   -= self.α * ( mean_x - self.z )
         return self.w
+
+    def __error_(self):
+        return abs(self.ρ**2 - self.θ3) / self.θ3
 
     def EMV(self):
         theta = [0,0,0,0]
@@ -227,12 +235,10 @@ class EMV(object):
         # Number of iterations
         for k in range(1, self.M):
             # Collected samples (each try we sample a new )
-            D           = self.__collect_samples_()
-            # Save final-wealth
-            final_wealths.append(D[-1][1])
+            D = self.__collect_samples_()
             # Descent-Gradient
-            self.θ, self.ϕ  = self.__update_SDA_(D)
-            print(k, self.ρ**2, self.θ3)
+            self.__update_SDA_(D)
+            print(k, self.ρ, np.sqrt(self.θ3), self.__error_())
             # Update w
-            self.w           = self.__update_w_(k, final_wealths)
+            self.__update_w_(k)
         return self.θ, self.ϕ, self.w
