@@ -45,14 +45,17 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
 {
     // Initial RL parameters
     m_w = init_w;
+    // θ:
     m_θ = init_θ;
     m_θ0 = m_θ[0];
     m_θ1 = m_θ[1];
     m_θ2 = m_θ[2];
     m_θ3 = m_θ[3];
+    // φ:
     m_φ = init_φ;
     m_φ1 = m_φ[0];
     m_φ2 = m_φ[1];
+    // m_finalWealths must be an empty vector
     m_finalWealths.clear();
     // Write the collected sample in a .csv file
     ofstream output, output2;
@@ -71,7 +74,7 @@ EMV::emv(vector<double>&init_θ, vector<double>&init_φ, double init_w)
         θ3Error();
         //        OUTPUT2    k                     COMMA pow(m_ρ,2)       COMMA m_θ3                      COMMA m_θ3error END_LINE
         START_LINE TAG("ρ^2") pow(m_ρ,2) COMMA TAG(" θ3") m_θ3  COMMA TAG(" Error") m_θ3error   END_LINE
-        START_LINE TAG("φ1") m_φ[0]      COMMA TAG(" φ2") m_φ1  END_LINE
+        START_LINE TAG("φ1") m_φ1      COMMA TAG(" φ2") m_φ1  END_LINE
         // Collected samples (complete path)
         collectSamples(k, output);
         // Update φ, θ, w:
@@ -105,52 +108,50 @@ EMV::collectSamples(int k, ofstream &output)
         u = Ν(m_random);
         x = nextWealth(x, u);
         t = i * m_dt;
-        //        OUTPUT k COMMA t COMMA u COMMA x END_LINE
+        // OUTPUT k COMMA t COMMA u COMMA x END_LINE
         sample = { t, x };
         m_D.push_back(sample);
     }
-    cout << m_D.size() << endl;
     // Save Final Wealths
     m_finalWealths.push_back(x);
 }
 
+// Mean of the distribution πφ
 void
 EMV::piMean(double x)
 {
     double first_factor, second_factor, coeff;
-    // We want to calculate the mean of the distribution πφ
-    // To  clean up the code we just separate the result into different factors
     first_factor    = sqrt( (2. * m_φ2) / (m_λ * PI) );
-    second_factor   = exp( (2. * m_φ1 - 1.) / 2.);
+    second_factor   = exp( m_φ1 - 0.5 );
     coeff           = - first_factor * second_factor;
     // Return the man of the policy (density)
     m_piMean = coeff * (x - m_w);
 }
 
+// Variance of the distribution πφ
 void
 EMV::piVariance(double t)
 {
     double num_term, exp_term;
-    // We want to calculate the variance of the distribution πφ
-    // To clean up the code we just separate the result into different factors
     num_term = 1. / (2. * PI);
     exp_term = exp( 2. * m_φ2 * (m_T - t) + 2. * m_φ1 - 1. );
-    // Return the variance of the policy (density)
     m_piVar =  num_term * exp_term;
 }
 
+// Given policy, u, and wealth x, provide the next wealth
 double
 EMV::nextWealth(double x, double u)
 {
     double nextX, dW;
     // Normal distribution
     normal_distribution<double> normal(0.,1.);
-    dW = normal(m_random);
+    dW =  sqrt(m_dt) * normal(m_random);
     // NextX
-    nextX = x + m_σ * u * (m_ρ * m_dt + sqrt(m_dt) * dW);
+    nextX = x + m_σ * u * (m_ρ * m_dt + dW);
     return nextX;
 }
 
+// Update the Lagrange multiplier
 void
 EMV::updateLagrange(int k)
 {

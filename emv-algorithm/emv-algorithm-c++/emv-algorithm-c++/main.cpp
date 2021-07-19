@@ -25,7 +25,7 @@ int main() {
     double  x0  = 1.,    z   = 1.4,      T   = 1.,       dt = 1./252*T;
     double  λ   = 2;
     int     M   = 20000,    N   = 10;
-    double  μ   = -0.5,  σ   = 0.1;
+    double  μ   = 0.3,  σ   = 0.1;
     double  r   = 0.02;
     double  ρ   = (μ - r) / σ;
     // INITIALISE PARAMETERS:

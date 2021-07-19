@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 class EMV(object):
@@ -28,12 +29,12 @@ class EMV(object):
         self.ρ   = ρ
         self.σ   = σ
         # INITIAL PARAMETERS
-        self.old_ϕ1 = 1
-        self.old_ϕ2 = 1
-        self.old_θ0 = 1
-        self.old_θ1 = 1
-        self.old_θ2 = 1
-        self.old_θ3 = 1
+        self.old_ϕ1 = 0.01
+        self.old_ϕ2 = 0.01
+        self.old_θ0 = 0.01
+        self.old_θ1 = 0.01
+        self.old_θ2 = 0.01
+        self.old_θ3 = 0.01
         # PARAMETERS TO BE UPDATED
         self.ϕ1 = self.old_ϕ1
         self.ϕ2 = self.old_ϕ2
@@ -49,7 +50,7 @@ class EMV(object):
     def __pi_mean_(self, x):
         # To clean up the code we just separate the result into different factors
         first_factor    = np.sqrt( (2 * self.ϕ2) / (self.λ * np.pi))
-        second_factor   = np.exp( (2 * self.ϕ1 - 1) / 2) 
+        second_factor   = np.exp( (2 * self.ϕ1 - 1) / 2)
         coeff           = - first_factor * second_factor
         # Return the mean of the policy (density)
         mean = coeff * (x - self.w)
@@ -63,23 +64,31 @@ class EMV(object):
         variance =  num_term * exp_term
         return variance
 
+    def __next_wealth_(self, prev_x, prev_u):
+        '''
+            This function calculates the (total) wealth of an investor from the previous wealth
+            and the current amount invested in the risky asset which has been determined following
+            the EMV-algorithm.
+        '''
+        dW = np.random.normal(0, 1) * np.sqrt(self.dt)
+        next_wealth = prev_x + self.σ * prev_u * (self.ρ * self.dt + dW)
+        return next_wealth
+
     def __V_(self, t, x):
-        ''' 
-            This function calculates the value function for a certain wealth in a certain moment    
+        '''
+            This function calculates the value function for a certain wealth in a certain moment
         '''
         first_term  = ((x - self.w) ** 2) * np.exp( -self.θ3 * (self.T - t))
-        second_term = self.θ2 * t ** 2
+        second_term = self.θ2 * t *t
         third_term  = self.θ1 * t
         fourth_term = self.θ0
         V = first_term + second_term + third_term + fourth_term
         return V
 
     def __diff_V_i_(self, D, i):
-        ''' 
-            This function calculates the approximate derivative of the value function given two 
+        '''
+            This function calculates the approximate derivative of the value function given two
             consecutives times.
-
-            D is the kth column of the matrix D 
         '''
         t_i         = D[i][0]
         x_i         = D[i][1]
@@ -91,16 +100,6 @@ class EMV(object):
 
     def __H_(self, t):
         return self.old_ϕ1 + self.old_ϕ2 * (self.T - t)
-
-    def __next_wealth_(self, prev_x, prev_u):
-        '''
-            This function calculates the (total) wealth of an investor from the previous wealth
-            and the current amount invested in the risky asset which has been determined following
-            the EMV-algorithm.
-        '''
-        W = np.random.normal(0, 1)
-        next_wealth = prev_x + self.σ * prev_u * (self.ρ * self.dt + W * np.sqrt(self.dt))
-        return next_wealth
 
     def __collect_samples_(self):
         # Initial state
@@ -117,7 +116,7 @@ class EMV(object):
             pi_mean     = self.__pi_mean_(x)
             pi_variance = self.__pi_variance_(t)
             # u_i
-            # We must calculate the standard deviation, because np.random.normal asks for it 
+            # We must calculate the standard deviation, because np.random.normal asks for it
             # instead of the variance
             pi_std = np.sqrt(pi_variance)
             u  = np.random.normal(pi_mean, pi_std)
@@ -137,7 +136,7 @@ class EMV(object):
             t_i       = D[i][0]
             sum       += (diff_V_i - self.λ * self.__H_(t_i)) * self.dt
         return sum
-    
+
     def __gradC_θ2_(self, D):
         sum = 0
         for i in range(len(D)-1):
@@ -146,7 +145,7 @@ class EMV(object):
             t_i         = D[i][0]
             sum         += (diff_V_i - self.λ * self.__H_(t_i)) * (t_i_plus ** 2 - t_i ** 2)
         return sum
-    
+
     def __gradC_ϕ1_(self, D):
         sum = 0
         for i in range(len(D)-1):
@@ -164,31 +163,30 @@ class EMV(object):
             t_i_plus        = D[i+1][0]
             x_i_plus        = D[i+1][1]
             first_factor    = (diff_V_i - self.λ * self.__H_(t_i)) * self.dt
-            first_num_2nd_factor  = (x_i_plus - self.w) ** 2 * np.exp( -2 * self.old_ϕ2 * (self.T - t_i_plus) ) * (self.T - t_i_plus)
-            second_num_2nd_factor = (x_i - self.w) ** 2 * np.exp(-2 * self.old_ϕ2 * (self.T - t_i)) * (self.T - t_i)
+            first_num_2nd_factor  = (x_i_plus - self.w) * (x_i_plus - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - t_i_plus) ) * (self.T - t_i_plus)
+            second_num_2nd_factor = (x_i - self.w) * x_i - self.w) * np.exp(-2 * self.old_ϕ2 * (self.T - t_i)) * (self.T - t_i)
             num_2nd_factor  =  2 * (first_num_2nd_factor - second_num_2nd_factor)
             second_factor   = - num_2nd_factor / self.dt - self.λ * (self.T - t_i)
             sum += first_factor * second_factor
         return sum
 
     def __update_θ0_(self):
-        return - self.θ2 * self.T ** 2 - self.θ1 * self.T - (self.w - self.z) ** 2
+        return - self.old_θ2 * self.T * self.T - self.old_θ1 * self.T - (self.w - self.z) * (self.w - self.z)
 
     def __update_θ1_(self, D):
         return self.old_θ1 - self.ηθ * self.__gradC_θ1_(D)
 
     def __update_θ2_(self, D):
         return self.old_θ2 - self.ηθ * self.__gradC_θ2_(D)
-    
+
     def __update_θ3_(self):
-        return 2 * self.ϕ2
+        return 2 * self.old_ϕ2
 
     def __update_ϕ1_(self, D):
         return self.old_ϕ1 - self.ηϕ * self.__gradC_ϕ1_( D)
-    
+
     def __update_ϕ2_(self,  D):
-        grad = self.__gradC_ϕ2_(D)
-        return self.old_ϕ2 - self.ηϕ * grad
+        return self.old_ϕ2 - self.ηϕ * self.__gradC_ϕ2_(D)
 
     def __update_SDA_(self, D):
         # θ1, θ2
@@ -200,7 +198,6 @@ class EMV(object):
         # Related with other parameters
         self.θ0 = self.__update_θ0_()
         self.θ3 = self.__update_θ3_()
-        
         # old = new
         self.old_θ0 = self.θ0
         self.old_θ1 = self.θ1
@@ -215,11 +212,11 @@ class EMV(object):
         return self.θ, self.ϕ
 
     def __update_w_(self, k):
-        if k >= self.N:
+        if k % self.N == 0:
             mean_x = 0
             for j in range(k - self.N + 1, k):
                 mean_x += self.final_wealths[j]
-            mean_x /= self.N 
+            mean_x /= self.N
             self.w   -= self.α * ( mean_x - self.z )
         return self.w
 
@@ -227,12 +224,6 @@ class EMV(object):
         return abs(self.ρ**2 - self.θ3) / self.θ3
 
     def EMV(self):
-        theta = [0,0,0,0]
-        phi   = [0,0]
-        w     = 0
-        # Vector of final wealths (states)
-        final_wealths = []
-        # Number of iterations
         for k in range(1, self.M):
             # Collected samples (each try we sample a new )
             D = self.__collect_samples_()

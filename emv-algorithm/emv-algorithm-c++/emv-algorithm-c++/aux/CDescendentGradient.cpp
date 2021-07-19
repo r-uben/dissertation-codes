@@ -32,8 +32,7 @@ SDA::CDescendentGradient(double ηθ, double ηφ, double z, double λ, vector<d
     m_D     = D;
     m_T     = D.back()[0];
     m_dt    = D[1][0] - D[0][0];
-    m_N     = D.size() - 1;
-    m_finalStep = int(floor(m_T / m_dt));
+    m_finalStep = D.size() - 1;
 }
 
 // UPDATES
@@ -92,6 +91,13 @@ SDA::updateAll()
     // Keep them
     m_θ = { m_θ0, m_θ1, m_θ2, m_θ3 };
     m_φ = { m_φ1, m_φ2 };
+    // Old = New
+    m_Oldφ1 = m_φ1;
+    m_Oldφ2 = m_φ2;
+    m_Oldθ0 = m_θ0;
+    m_Oldθ1 = m_θ1;
+    m_Oldθ2 = m_θ2;
+    m_Oldθ3 = m_θ3;
 }
 
 
@@ -109,7 +115,7 @@ double
 SDA::gradientθ1()
 {
     double diffVi, t, sum = 0.;
-    for (int i = 0; i < m_N; i++)
+    for (int i = 0; i < m_finalStep; i++)
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
@@ -122,7 +128,7 @@ double
 SDA::gradientθ2()
 {
     double diffVi, t, nextt, sum = 0.;
-    for (int i = 0; i < m_N; i++)
+    for (int i = 0; i < m_finalStep; i++)
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
@@ -136,7 +142,7 @@ double
 SDA::gradientφ1()
 {
     double diffVi, t, sum = 0.;
-    for (int i = 0; i < m_N; i++)
+    for (int i = 0; i < m_finalStep; i++)
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
@@ -151,20 +157,19 @@ SDA::gradientφ2()
     double diffVi, t, x, NEXTt, NEXTx, sum = 0.;
     double firstFactor;
     double secondFactor, secondFactorNumFirstSum, secondFactorNumSecondSum, secondFactorNum;
-    for (int i = 0; i < m_N; i++)
+    for (int i = 0; i < m_finalStep; i++)
     {
         diffVi  = diffV(i);
         t       = m_D[i][0];
         x       = m_D[i][1];
         NEXTt   = m_D[i+1][0];
         NEXTx   = m_D[i+1][1];
-//        PRINT_DATA_LINE("x", x, "NEXTx", NEXTx);
         firstFactor  =  (diffVi - m_λ * H(t)) * m_dt;
         secondFactorNumFirstSum  = (NEXTx - m_w) * (NEXTx - m_w) * exp(-2. * m_Oldφ2 * (m_T - NEXTt)) * (m_T - NEXTt);
         secondFactorNumSecondSum = (x - m_w) * (x - m_w) * exp(-2. * m_Oldφ2 * (m_T - t)) * (m_T - t);
         secondFactorNum = secondFactorNumFirstSum - secondFactorNumSecondSum;
         secondFactor = -2. * secondFactorNum / m_dt - m_λ * (m_T - t);
-        PRINT_DATA_LINE("Approximate Derivative:", diffVi, "... ", "Relax. Term:", m_λ * H(t));
+        PRINT_DATA_LINE("x", x, "NEXTx", NEXTx, "... ", "Approximate Derivative", diffVi, "... ", "Relax. Term", m_λ * H(t));
         // cout << sum << ensdl;
         sum += firstFactor * secondFactor;
     }
