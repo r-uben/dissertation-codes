@@ -23,20 +23,16 @@ def rel_error_sharpe_ratio(rho, theta3):
 
 if __name__== "__main__":
 
-    μ = [(2*n-1)/10 for n in range(-2,4)]
-    σ = [n/10 for n in range(1,5)]
-
     r = 0.02
-
-    mu = 0.3
-    sigma  = 0.1
-    ρ = (mu - r) / sigma
+    μ = 0.30
+    σ  = 0.10
+    ρ = (μ - r) / σ
 
     x_0 = 1
     z = 1.4
 
     M = 20000
-    N = 20
+    N = 50
     λ = 2
     ηθ = 0.0005
     ηφ = ηθ
@@ -45,9 +41,5 @@ if __name__== "__main__":
     T = 1
     dt = 1/252
 
-    rho2        = []
-    num_samples = []
-    rel_errors_rho  = []
-
-    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, sigma)
-    theta, phi, w = data.EMV()
+    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, σ)
+    θ, ϕ, w = data.EMV()
