@@ -28,15 +28,15 @@ class EMV(object):
         # Final Step
         self.final_step = int(np.floor(self.T / self.dt))
         # MARKET (PARAMETERS)
-        self.ρ   = ρ
+        self.ρ   = abs(ρ)
         self.σ   = σ
         # INITIAL PARAMETERS
-        self.old_ϕ1 = 0.01
-        self.old_ϕ2 = 0.01
-        self.old_θ0 = 0.01
-        self.old_θ1 = 0.01
-        self.old_θ2 = 0.01
-        self.old_θ3 = 0.01
+        self.old_ϕ1 = 1
+        self.old_ϕ2 = 1
+        self.old_θ0 = 1
+        self.old_θ1 = 1
+        self.old_θ2 = 1
+        self.old_θ3 = 1
         # PARAMETERS TO BE UPDATED
         self.ϕ1 = self.old_ϕ1
         self.ϕ2 = self.old_ϕ2
@@ -66,9 +66,9 @@ class EMV(object):
         # To clean up the code we just separate the result into different factors
         first_factor    = np.sqrt( (2 * self.ϕ2) / (self.λ * np.pi))
         second_factor   = np.exp( self.ϕ1 - 0.5 )
-        coeff           = - first_factor * second_factor
+        coeff           = first_factor * second_factor
         # Return the mean of the policy (density)
-        mean = coeff * (x - self.w)
+        mean = - coeff * (x - self.w)
         return mean
 
     def __pi_variance_(self, t):
@@ -93,10 +93,10 @@ class EMV(object):
         '''
             This function calculates the value function for a certain wealth in a certain moment
         '''
-        first_term  = (x - self.w) * (x - self.w) * np.exp( -self.θ3 * (self.T - t))
-        second_term = self.θ2 * t * t
-        third_term  = self.θ1 * t
-        fourth_term = self.θ0
+        first_term  = (x - self.w) * (x - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - t))
+        second_term = self.old_θ2 * t * t
+        third_term  = self.old_θ1 * t
+        fourth_term = self.old_θ0
         V = first_term + second_term + third_term + fourth_term
         return V
 
@@ -146,25 +146,25 @@ class EMV(object):
         sum = 0
         for i in range(len(D)-1):
             dotV_i    = self.__dotV_(D, i)
-            t_i       = D[i][0]
-            sum       += (dotV_i - self.λ * self.__H_(t_i)) * self.dt
+            t       = D[i][0]
+            sum       += (dotV_i - self.λ * self.__H_(t)) * self.dt
         return sum
 
     def __gradC_θ2_(self, D):
         sum = 0
         for i in range(len(D)-1):
             dotV_i    = self.__dotV_(D, i)
-            t_i_plus    = D[i+1][0]
-            t_i         = D[i][0]
-            sum         += (dotV_i - self.λ * self.__H_(t_i)) * (t_i_plus ** 2 - t_i ** 2)
+            t         = D[i][0]
+            next_t    = D[i+1][0]
+            sum       += (dotV_i - self.λ * self.__H_(t)) * (next_t ** 2 - t ** 2)
         return sum
 
     def __gradC_ϕ1_(self, D):
         sum = 0
         for i in range(len(D)-1):
             dotV_i  = self.__dotV_(D, i)
-            t_i       = D[i][0]
-            sum       += (dotV_i - self.λ * self.__H_(t_i)) * self.dt
+            t_i     = D[i][0]
+            sum     += (dotV_i - self.λ * self.__H_(t_i)) * self.dt
         return - self.λ * sum
 
     def __gradC_ϕ2_(self, D):
@@ -204,19 +204,23 @@ class EMV(object):
     def __update_SDA_(self, D):
         # θ1, θ2
         self.θ1 = self.__update_θ1_(D)
-        self.θ1_list.append(self.θ1)
         self.θ2 = self.__update_θ2_(D)
-        self.θ2_list.append(self.θ2)
+        # θ0
+        self.θ0 = self.__update_θ0_()
         # ϕ1, ϕ2
         self.ϕ1 = self.__update_ϕ1_(D)
-        self.ϕ1_list.append(self.ϕ1)
         self.ϕ2 = self.__update_ϕ2_(D)
-        self.ϕ2_list.append(self.ϕ2)
-        # Related other parameters
-        self.θ0 = self.__update_θ0_()
-        self.θ0_list.append(self.θ0)
+        # θ3
         self.θ3 = self.__update_θ3_()
+
+        # keep in lists
+        self.θ0_list.append(self.θ0)
+        self.θ1_list.append(self.θ1)
+        self.θ2_list.append(self.θ2)
         self.θ3_list.append(self.θ3)
+        self.ϕ1_list.append(self.ϕ1)
+        self.ϕ2_list.append(self.ϕ2)
+
         # old = new
         self.old_θ0 = self.θ0
         self.old_θ1 = self.θ1
@@ -263,6 +267,18 @@ class EMV(object):
     def __error_(self):
         return abs(self.ρ * self.ρ - self.θ3) / self.ρ / self.ρ
 
+    def __name_(self, name):
+        return os.path.join(self.data, name + '_ρ' + str(self.ρ) + '_σ' + str(self.σ) + '.csv')
+
+    def __save_data_(self):
+        df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance}
+        df2 = {'θ0': self.θ0_list, 'θ1': self.θ1_list,'θ2': self.θ2_list, 'θ3': self.θ3_list, 'ϕ1': self.ϕ1_list, 'ϕ2': self.ϕ2_list}
+        df1 = pd.DataFrame(data = df1)
+        df1.to_csv(self.__name_('sample_parameters'), sep=';', index=False)
+        df2 = pd.DataFrame(data = df2)
+        df2.to_csv(self.__name_('rl_parameters'), sep=';', index=False)
+        return df1, df2
+
     def EMV(self):
         for k in range(self.M):
             # Collected samples (each try we sample a new )
@@ -274,11 +290,5 @@ class EMV(object):
             self.__update_w_(k)
             # Data frames
         # Create a data frame with sample mean and variance
-        print(len(self.episodes), len(self.sample_mean), len(self.sample_variance))
-        df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance}
-        df2 = {'θ0': self.θ0_list, 'θ1': self.θ1_list,'θ2': self.θ2_list, 'θ3': self.θ3_list, 'ϕ1': self.ϕ1_list, 'ϕ2': self.ϕ2_list}
-        df1 = pd.DataFrame(data = df1)
-        df1.to_csv(os.path.join(self.data, 'sample_parameters.csv'), sep=';', index=False)
-        df2 = pd.DataFrame(data = df2)
-        df2.to_csv(os.path.join(self.data, 'rl_parameters.csv'), sep=';', index=False)
+        self.__save_data_()
         return self.θ, self.ϕ, self.w
