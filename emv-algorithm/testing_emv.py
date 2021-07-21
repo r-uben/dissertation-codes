@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from matplotlib.pylab import plt
 from emv import EMV
 from parameters import Parameters
@@ -25,5 +26,5 @@ if __name__== "__main__":
     T = 1
     dt = 1/252
 
-    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, ρ, σ)
+    data = EMV(α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, μ, σ, r)
     θ, ϕ, w = data.EMV()

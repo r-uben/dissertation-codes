@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 class EMV(object):
 
-    def __init__(self, α, ηθ, ηϕ, x_0, z, T, dt, λ, M, N, ρ, σ):
+    def __init__(self, α, ηθ, ηϕ, x_0, z, T, dt, λ, M, N, μ, σ, r):
         # Learning rates
         self.α      = α
         self.ηθ     = ηθ
@@ -28,8 +28,10 @@ class EMV(object):
         # Final Step
         self.final_step = int(np.floor(self.T / self.dt))
         # MARKET (PARAMETERS)
-        self.ρ   = abs(ρ)
-        self.σ   = σ
+        self.μ      = μ
+        self.r      = r
+        self.σ      = σ
+        self.ρ      = abs(self.μ - self.r) / self.σ
         # INITIAL PARAMETERS
         self.old_ϕ1 = 1
         self.old_ϕ2 = 1
@@ -47,11 +49,13 @@ class EMV(object):
         self.θ  = [self.θ0, self.θ1, self.θ2, self.θ3]
         self.ϕ  = [self.ϕ1, self.ϕ2]
         self.w  = 1
-        self.final_wealths = []
+        self.final_wealths      = []
         # DATA FRAMES
-        self.episodes = []
-        self.sample_mean = []
-        self.sample_variance = []
+        self.episodes           = []
+        self.sample_mean        = []
+        self.sample_variance    = []
+        self.sample_std         = []
+        self.annualised_returns = []
         self.θ0_list = [self.θ0]
         self.θ1_list = [self.θ1]
         self.θ2_list = [self.θ2]
@@ -234,30 +238,41 @@ class EMV(object):
         self.ϕ  = [self.ϕ1, self.ϕ2]
         return self.θ, self.ϕ
 
-    def __mean_lastN(self, k):
+    def __mean_lastN_(self, k):
         mean_x = 0
         for j in range(k - self.N, k):
             mean_x += self.final_wealths[j]
         mean_x /= self.N
         return mean_x
     
-    def __var_lastN(self, k, mean):
+    def __var_lastN_(self, k, mean):
         variance_x = 0
         for j in range(k - self.N, k):
             variance_x += (self.final_wealths[j] - mean) ** 2
         variance_x /= (self.N - 1)
         return variance_x
 
+    def __annualised_returns_(self, k):
+        annualised_return_mean = 0
+        for j in range(k - self.N, k):
+            annualised_return_mean += self.final_wealths[j] / self.x_0 - 1
+        annualised_return_mean /= self.N
+        return annualised_return_mean
+
     def __update_w_(self, k):
         if k >= self.N:
             ## Sample mean
-            mean_x = self.__mean_lastN(k)
+            mean_x = self.__mean_lastN_(k)
             ## Sample variance
-            variance_x = self.__var_lastN(k, mean_x)
+            variance_x = self.__var_lastN_(k, mean_x)
+            ## Annualised returns
+            annualised_returns = self.__annualised_returns_(k)
             if k % self.N == 0:
                 self.episodes.append( k / 50 )
                 self.sample_mean.append(mean_x)
                 self.sample_variance.append(variance_x)
+                self.sample_std.append(np.sqrt(variance_x))
+                self.annualised_returns.append(annualised_returns)
             ## Update rule for the Lagrange multiplier, w
             self.w   -= self.α * ( mean_x - self.z )
             self.w_list.append(self.w)
@@ -268,15 +283,15 @@ class EMV(object):
         return abs(self.ρ * self.ρ - self.θ3) / self.ρ / self.ρ
 
     def __name_(self, name):
-        return os.path.join(self.data, name + '_ρ' + str(self.ρ) + '_σ' + str(self.σ) + '.csv')
+        return os.path.join(self.data, name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self.ρ) + '.csv')
 
     def __save_data_(self):
-        df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance}
+        df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance, 'std': self.sample_std, 'μ': self.annualised_returns}
         df2 = {'θ0': self.θ0_list, 'θ1': self.θ1_list,'θ2': self.θ2_list, 'θ3': self.θ3_list, 'ϕ1': self.ϕ1_list, 'ϕ2': self.ϕ2_list}
         df1 = pd.DataFrame(data = df1)
-        df1.to_csv(self.__name_('sample_parameters'), sep=';', index=False)
+        df1.to_csv(self.__name_('sample_parameters'), sep=',', index=False)
         df2 = pd.DataFrame(data = df2)
-        df2.to_csv(self.__name_('rl_parameters'), sep=';', index=False)
+        df2.to_csv(self.__name_('rl_parameters'), sep=',', index=False)
         return df1, df2
 
     def EMV(self):
