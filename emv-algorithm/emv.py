@@ -104,10 +104,10 @@ class EMV(object):
         return next_wealth
 
     def __V_(self, t, x):
-        first_term  = (x - self.w) * (x - self.w) * np.exp( -2 * self.ϕ2 * (self.T - t))
-        second_term = self.θ2 * t * t
-        third_term  = self.θ1 * t
-        fourth_term = self.θ0
+        first_term  = (x - self.w) * (x - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - t))
+        second_term = self.old_θ2 * t * t
+        third_term  = self.old_θ1 * t
+        fourth_term = self.old_θ0
         V = first_term + second_term + third_term + fourth_term
         return V
 
@@ -125,7 +125,7 @@ class EMV(object):
         return dotV
 
     def __H_(self, t):
-        return self.ϕ1 + self.ϕ2 * (self.T - t)
+        return self.old_ϕ1 + self.old_ϕ2 * (self.T - t)
 
     def __gradC_θ1_(self):
         sum = 0
@@ -161,8 +161,8 @@ class EMV(object):
             next_t   = self.D[i+1][0]
             next_x   = self.D[i+1][1]
             first_factor          = (dotV_i - self.λ  * self.__H_(t)) * self.dt
-            first_num_2nd_factor  = (next_x - self.w) * (next_x - self.w) * np.exp( -2 * self.ϕ2 * (self.T - next_t) ) * (self.T - next_t)
-            second_num_2nd_factor = (x - self.w)      * (x - self.w)      * np.exp( -2 * self.ϕ2 * (self.T - t) ) * (self.T - t)
+            first_num_2nd_factor  = (next_x - self.w) * (next_x - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - next_t) ) * (self.T - next_t)
+            second_num_2nd_factor = (x - self.w)      * (x - self.w)      * np.exp( -2 * self.old_ϕ2 * (self.T - t) ) * (self.T - t)
             num_2nd_factor        =  2 * (first_num_2nd_factor - second_num_2nd_factor)
             second_factor         = - num_2nd_factor / self.dt - self.λ * (self.T - t)
             sum += first_factor * second_factor
@@ -257,6 +257,10 @@ class EMV(object):
     def __update_π_(self):
         self.old_ϕ1 = self.ϕ1
         self.old_ϕ2 = self.ϕ2
+        self.old_θ0 = self.θ0
+        self.old_θ1 = self.θ1
+        self.old_θ2 = self.θ2
+        self.old_θ3 = self.θ3
 
     def __collect_samples_(self):
         # Initial state
