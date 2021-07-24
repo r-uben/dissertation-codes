@@ -1,17 +1,19 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import time 
-
 from scipy.stats import norm
 from markets import Markets
 
 class EMV(object):
 
-    def __init__(self, market, α, ηθ, ηϕ, x_0, z, T, dt, λ, M, N, μ, σ, r):
+    def __init__(self, market, α, ηθ, ηϕ, x_0, z, T, dt, λ, M, N, μ, σ, r, real_data = pd.DataFrame()):
         # Market
-        self.market = market.lower()
+        if real_data.empty is True:
+            self.market = market.lower()
+        if real_data.empty is False:
+            self.market = market
+            self.df = real_data
         # Learning rates
         self.α      = α
         self.ηθ     = ηθ
@@ -91,14 +93,16 @@ class EMV(object):
         variance =  num_term * exp_term
         return variance
 
-    def __next_wealth__(self, prev_x, prev_u):
-        markets = Markets(self.T, self.dt, self.r)
+    def __next_wealth__(self, prev_x, prev_u, i):
+        markets = Markets(self.T, self.dt, self. μ, self.r, self.σ)
         if self.market == 'log':
-            next_wealth = markets.gbm_sde(prev_x, prev_u, self.ρ, self.σ)   
+            next_wealth = markets.gbm_sde(prev_x, prev_u)   
         if self.market == 'exp':
-            next_wealth = markets.gbm_sol(prev_x, prev_u, self.ρ, self.σ)
+            next_wealth = markets.gbm_sol(prev_x, prev_u)
         if self.market == 'crr':
-            next_wealth = markets.crr(prev_x, prev_u, 1.1, 0.9)
+            next_wealth = markets.crr(prev_x, prev_u)
+        else:
+            next_wealth = markets.real_data(prev_x, prev_u, self.df, i)
         return next_wealth
 
     def __V__(self, t, x):
@@ -141,7 +145,7 @@ class EMV(object):
             # t_i
             t  = i * self.dt
             # x_{t_i}
-            x  = self.__next_wealth__(x, u)
+            x  = self.__next_wealth__(x, u, i)
             # Collected samples
             self.D.append([t,x])
         # Keep final wealths
@@ -283,7 +287,11 @@ class EMV(object):
         return abs(self.ρ * self.ρ - self.θ3) / self.ρ / self.ρ
 
     def __give_name__(self, name):
-        return os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self.__round__(self.ρ)) + '_z' + str(self.z) + '.csv')
+        if self.market == 'log' or self.market == 'exp' or self.market == 'crr':
+            name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self.__round__(self.ρ)) + '_z' + str(self.z) + '.csv')
+        else:
+            name = os.path.join(self.data, self.market + '_' + name + '.csv') 
+        return name 
 
     def __save_data__(self):
         df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance, 'std': self.sample_std, 'μ': self.annualised_returns}
@@ -293,7 +301,7 @@ class EMV(object):
         df2 = pd.DataFrame(data = df2)
         df2.to_csv(self.__give_name__('rl_parameters'), sep=',', index=False)
 
-    def __print_θ3__(self):
+    def __print_θ3__(self, k):
         print(k, self.__round__(self.ρ ** 2), self.__round__(self.θ3), self.__round__(self.θ3 / self.ρ ** 2), self.__round__(self.__error__()))
 
     def EMV(self):
@@ -307,7 +315,7 @@ class EMV(object):
             # Update w
             self.__update_w__(k)
              # Print the evolution of θ3 approximation
-            # self.__print_θ3__()
+            self.__print_θ3__(k)
         # End for
         # Create a data frame with sample mean and variance
         self.__save_data__()
