@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from scipy.stats import norm
+from markets import Markets
 
 class EMV(object):
 
