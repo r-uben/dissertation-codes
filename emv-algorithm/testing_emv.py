@@ -29,6 +29,7 @@ if __name__== "__main__":
     T = 1
     dt = 1/252
 
-    df = read_real_data('IBEX_24:07_year')
-    data = EMV('IBEX_24:07_year', α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, μ, σ, r, df)
+    market = 'SAN_24:07_year' 
+    df = read_real_data(market)
+    data = EMV(market, α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, μ, σ, r, df)
     data.EMV()

@@ -135,7 +135,7 @@ class EMV(object):
         # Collected samples set
         self.D = [init_sample]
         # Sample (t_i, x_i) from Market under πϕ:
-        for i in range(1, self.final_step + 1):
+        for i in range(self.final_step - 1):
             # Mean and variance
             pi_mean     = self.__pi_mean__(x)
             pi_variance = self.__pi_variance__(t)
@@ -143,7 +143,7 @@ class EMV(object):
             # u_i
             u  = np.random.normal(pi_mean, pi_std)
             # t_i
-            t  = i * self.dt
+            t  = (i+1) * self.dt
             # x_{t_i}
             x  = self.__next_wealth__(x, u, i)
             # Collected samples
@@ -290,7 +290,7 @@ class EMV(object):
         if self.market == 'log' or self.market == 'exp' or self.market == 'crr':
             name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self.__round__(self.ρ)) + '_z' + str(self.z) + '.csv')
         else:
-            name = os.path.join(self.data, self.market + '_' + name + '.csv') 
+            name = os.path.join(self.data, self.market.lower() + '_' + name + '_z' + str(self.z) + '.csv') 
         return name 
 
     def __save_data__(self):
