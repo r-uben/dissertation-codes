@@ -73,10 +73,10 @@ class EMV(object):
         # Paths
         self.data = '/Users/rubenexojo/Library/Mobile Documents/com~apple~CloudDocs/MSc Mathematical Finance - Manchester/dissertation/dissertation-codes/data'
 
-    def __round__(self, x):
+    def _round(self, x):
         return float("{0:.3f}".format(x))
 
-    def __pi_mean__(self, x):
+    def _piMean(self, x):
         # To clean up the code we just separate the result into different factors
         first_factor    = np.sqrt( (2 * self.old_ϕ2) / (self.λ * np.pi))
         second_factor   = np.exp( self.old_ϕ1 - 0.5 )
@@ -85,7 +85,7 @@ class EMV(object):
         mean = - coeff * (x - self.w)
         return mean
 
-    def __pi_variance__(self, t):
+    def _piVariance(self, t):
          # To clean up the code we just separate the result into different factors
         num_term = 1 / (2 * np.pi)
         exp_term = np.exp( 2 * self.old_ϕ2 * (self.T - t) + 2 * self.old_ϕ1 - 1)
@@ -93,7 +93,7 @@ class EMV(object):
         variance =  num_term * exp_term
         return variance
 
-    def __next_wealth__(self, prev_x, prev_u, i):
+    def _nextWealth(self, prev_x, prev_u, i):
         markets = Markets(self.T, self.dt, self. μ, self.r, self.σ)
         if self.market == 'log':
             next_wealth = markets.gbm_sde(prev_x, prev_u)   
@@ -105,7 +105,7 @@ class EMV(object):
             next_wealth = markets.real_data(prev_x, prev_u, self.df, i)
         return next_wealth
 
-    def __V__(self, t, x):
+    def _V(self, t, x):
         first_term  = ((x - self.w) ** 2) * np.exp( -2 * self.old_ϕ2 * (self.T - t))
         second_term = self.old_θ2 * t ** 2
         third_term  = self.old_θ1 * t
@@ -113,19 +113,19 @@ class EMV(object):
         V = first_term + second_term + third_term + fourth_term
         return V
 
-    def __dotV__(self, i):
+    def _dotV(self, i):
         t         = self.D[i][0]
         x         = self.D[i][1]
         next_t    = self.D[i+1][0]
         next_x    = self.D[i+1][1]
-        num_diff  = self.__V__(next_t, next_x) - self.__V__(t, x)
+        num_diff  = self._V(next_t, next_x) - self._V(t, x)
         dotV      = num_diff / self.dt
         return dotV
 
-    def __H__(self, t):
+    def _H(self, t):
         return self.old_ϕ1 + self.old_ϕ2 * (self.T - t)
 
-    def __collect_samples__(self):
+    def _collectSamples(self):
         # Initial state
         x = self.x_0
         # Initial time
@@ -137,54 +137,54 @@ class EMV(object):
         # Sample (t_i, x_i) from Market under πϕ:
         for i in range(self.final_step - 1):
             # Mean and variance
-            pi_mean     = self.__pi_mean__(x)
-            pi_variance = self.__pi_variance__(t)
+            pi_mean     = self._piMean(x)
+            pi_variance = self._piVariance(t)
             pi_std      = np.sqrt(pi_variance)
             # u_i
             u  = np.random.normal(pi_mean, pi_std)
             # t_i
             t  = (i+1) * self.dt
             # x_{t_i}
-            x  = self.__next_wealth__(x, u, i)
+            x  = self._nextWealth(x, u, i)
             # Collected samples
             self.D.append([t,x])
         # Keep final wealths
         self.final_wealths.append(x)
 
-    def __gradC_θ1__(self):
+    def _gradC_θ1(self):
         sum = 0
         for i in range(len(self.D)-1):
-            dotV_i  = self.__dotV__(i)
+            dotV_i  = self._dotV(i)
             t       = self.D[i][0]
-            sum     += (dotV_i - self.λ * self.__H__(t)) * self.dt
+            sum     += (dotV_i - self.λ * self._H(t)) * self.dt
         return sum
 
-    def __gradC_θ2__(self):
+    def _gradC_θ2(self):
         sum = 0
         for i in range(len(self.D)-1):
-            dotV_i    = self.__dotV__(i)
+            dotV_i    = self._dotV(i)
             t         = self.D[i][0]
             next_t    = self.D[i+1][0]
-            sum       += (dotV_i - self.λ * self.__H__(t)) * (next_t ** 2 - t ** 2)
+            sum       += (dotV_i - self.λ * self._H(t)) * (next_t ** 2 - t ** 2)
         return sum
 
-    def __gradC_ϕ1__(self):
+    def _gradC_φ1(self):
         sum = 0
         for i in range(len(self.D)-1):
-            dotV_i  = self.__dotV__(i)
+            dotV_i  = self._dotV(i)
             t_i     = self.D[i][0]
-            sum     += (dotV_i - self.λ * self.__H__(t_i)) * self.dt
+            sum     += (dotV_i - self.λ * self._H(t_i)) * self.dt
         return - self.λ * sum
 
-    def __gradC_ϕ2__(self):
+    def _gradC_φ2(self):
         sum = 0
         for i in range(len(self.D)-1):
-            dotV_i = self.__dotV__(i)
+            dotV_i = self._dotV(i)
             t        = self.D[i][0]
             x        = self.D[i][1]
             next_t   = self.D[i+1][0]
             next_x   = self.D[i+1][1]
-            first_factor          = (dotV_i - self.λ * self.__H__(t)) * self.dt
+            first_factor          = (dotV_i - self.λ * self._H(t)) * self.dt
             first_num_2nd_factor  = ((next_x - self.w) ** 2) * np.exp( -2 * self.old_ϕ2 * (self.T - next_t) ) * (self.T - next_t)
             second_num_2nd_factor = ((x - self.w) ** 2)      * np.exp( -2 * self.old_ϕ2 * (self.T - t) ) * (self.T - t)
             num_2nd_factor        =  2 * (first_num_2nd_factor - second_num_2nd_factor)
@@ -192,25 +192,25 @@ class EMV(object):
             sum += first_factor * second_factor
         return sum
 
-    def __update_θ0__(self):
+    def _update_θ0(self):
         self.θ0 =  - self.old_θ2 * self.T * self.T - self.old_θ1 * self.T - (self.w - self.z) * (self.w - self.z)
 
-    def __update_θ1__(self):
-        self.θ1 = self.old_θ1 - self.ηθ * self.__gradC_θ1__()
+    def _update_θ1(self):
+        self.θ1 = self.old_θ1 - self.ηθ * self._gradC_θ1()
 
-    def __update_θ2__(self):
-        self.θ2 = self.old_θ2 - self.ηθ * self.__gradC_θ2__()
+    def _update_θ2(self):
+        self.θ2 = self.old_θ2 - self.ηθ * self._gradC_θ2()
 
-    def __update_θ3__(self):
+    def _update_θ3(self):
         self.θ3 = 2 * self.old_ϕ2
 
-    def __update_ϕ1__(self):
-        self.ϕ1 = self.old_ϕ1 - self.ηϕ * self.__gradC_ϕ1__()
+    def _update_φ1(self):
+        self.ϕ1 = self.old_ϕ1 - self.ηϕ * self._gradC_φ1()
 
-    def __update_ϕ2__(self):
-        self.ϕ2 = self.old_ϕ2 - self.ηϕ * self.__gradC_ϕ2__()
+    def _update_φ2(self):
+        self.ϕ2 = self.old_ϕ2 - self.ηϕ * self._gradC_φ2()
 
-    def __keep_to_df__(self):
+    def _keepDataFrame(self):
         self.θ0_list.append(self.θ0)
         self.θ1_list.append(self.θ1)
         self.θ2_list.append(self.θ2)
@@ -218,7 +218,7 @@ class EMV(object):
         self.ϕ1_list.append(self.ϕ1)
         self.ϕ2_list.append(self.ϕ2)
 
-    def __old_to_new__(self):
+    def _oldToNew(self):
         self.old_θ0 = self.θ0
         self.old_θ1 = self.θ1
         self.old_θ2 = self.θ2
@@ -226,52 +226,52 @@ class EMV(object):
         self.old_ϕ1 = self.ϕ1
         self.old_ϕ2 = self.ϕ2
 
-    def __update_SDA__(self):
+    def _updateSDA(self):
         # θ1, θ2
-        self.__update_θ1__()
-        self.__update_θ2__()
+        self._update_θ1()
+        self._update_θ2()
         # θ0
-        self.__update_θ0__()
+        self._update_θ0()
         # ϕ1, ϕ2
-        self.__update_ϕ1__()
-        self.__update_ϕ2__()
+        self._update_φ1()
+        self._update_φ2()
         # θ3
-        self.__update_θ3__()
+        self._update_θ3()
 
         # data frames
-        self.__keep_to_df__()
+        self._keepDataFrame()
         # old = new
-        self.__old_to_new__()
+        self._oldToNew()
 
-    def __mean_lastN__(self, k):
+    def _sampleMean(self, k):
         mean_x = 0
         for j in range(k - self.N, k):
             mean_x += self.final_wealths[j]
         mean_x /= self.N
         return mean_x
     
-    def __var_lastN__(self, k, mean):
+    def _sampleVar(self, k, mean):
         variance_x = 0
         for j in range(k - self.N, k):
             variance_x += (self.final_wealths[j] - mean) ** 2
         variance_x /= (self.N - 1)
         return variance_x
 
-    def __annualised_returns__(self, k):
+    def _annualisedReturns(self, k):
         annualised_return_mean = 0
         for j in range(k - self.N, k):
             annualised_return_mean += self.final_wealths[j] / self.x_0 - 1
         annualised_return_mean /= self.N
         return annualised_return_mean
 
-    def __update_w__(self, k):
+    def _updateW(self, k):
         if k >= self.N:
             ## Sample mean
-            mean_x = self.__mean_lastN__(k)
+            mean_x = self._sampleMean(k)
             ## Sample variance
-            variance_x = self.__var_lastN__(k, mean_x)
+            variance_x = self._sampleVar(k, mean_x)
             ## Annualised returns
-            annualised_returns = self.__annualised_returns__(k)
+            annualised_returns = self._annualisedReturns(k)
             if k % self.N == 0:
                 self.episodes.append( k / 50 )
                 self.sample_mean.append(mean_x)
@@ -281,43 +281,43 @@ class EMV(object):
             ## Update rule for the Lagrange multiplier, w
             self.w   -= self.α * ( mean_x - self.z )
             self.w_list.append(self.w)
-            #print(k, self.__round__(self.z), self.__round__(mean_x), self.__round__(variance_x), self.__round__(self.w))
+            #print(k, self._round(self.z), self._round(mean_x), self._round(variance_x), self._round(self.w))
 
-    def __error__(self):
+    def _error(self):
         return abs(self.ρ * self.ρ - self.θ3) / self.ρ / self.ρ
 
-    def __give_name__(self, name):
+    def _giveName(self, name):
         if self.market == 'log' or self.market == 'exp' or self.market == 'crr':
-            name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self.__round__(self.ρ)) + '_z' + str(self.z) + '.csv')
+            name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self._round(self.ρ)) + '_z' + str(self.z) + '.csv')
         else:
             name = os.path.join(self.data, self.market.lower() + '_' + name + '_z' + str(self.z) + '.csv') 
         return name 
 
-    def __save_data__(self):
+    def _saveData(self):
         df1 = {'k': self.episodes, 'mean': self.sample_mean, 'variance': self.sample_variance, 'std': self.sample_std, 'μ': self.annualised_returns}
         df2 = {'θ0': self.θ0_list, 'θ1': self.θ1_list,'θ2': self.θ2_list, 'θ3': self.θ3_list, 'ϕ1': self.ϕ1_list, 'ϕ2': self.ϕ2_list}
         df1 = pd.DataFrame(data = df1)
-        df1.to_csv(self.__give_name__('sample_parameters'), sep=',', index=False)
+        df1.to_csv(self._giveName('sample_parameters'), sep=',', index=False)
         df2 = pd.DataFrame(data = df2)
-        df2.to_csv(self.__give_name__('rl_parameters'), sep=',', index=False)
+        df2.to_csv(self._giveName('rl_parameters'), sep=',', index=False)
 
-    def __print_θ3__(self, k):
-        print(k, self.__round__(self.ρ ** 2), self.__round__(self.θ3), self.__round__(self.θ3 / self.ρ ** 2), self.__round__(self.__error__()))
+    def _printθ3(self, k):
+        print(k, self._round(self.ρ ** 2), self._round(self.θ3), self._round(self.θ3 / self.ρ ** 2), self._round(self._error()))
 
     def EMV(self):
         # Episodes
         start_time = time.time()
         for k in range(self.M):
             # Collected samples (each try we sample a new 
-            self.__collect_samples__()
+            self._collectSamples()
             # Descent-Gradient
-            self.__update_SDA__()
+            self._updateSDA()
             # Update w
-            self.__update_w__(k)
+            self._updateW(k)
              # Print the evolution of θ3 approximation
-            self.__print_θ3__(k)
+            self._printθ3(k)
         # End for
         # Create a data frame with sample mean and variance
-        self.__save_data__()
+        self._saveData()
         elapsed_time = time.time() - start_time
-        print(str(self.__round__(elapsed_time)) + 's')
+        print(str(self._round(elapsed_time)) + 's')
