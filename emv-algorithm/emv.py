@@ -42,12 +42,12 @@ class EMV(object):
         # COLLECTED SAMPLES
         self.D      = []
         # INITIAL PARAMETERS
-        self.old_ϕ1 = 1
-        self.old_ϕ2 = 1
-        self.old_θ0 = 1
-        self.old_θ1 = 1
-        self.old_θ2 = 1
-        self.old_θ3 = 1
+        self.old_ϕ1 = -0.05
+        self.old_ϕ2 = 0.05
+        self.old_θ0 = 0.05
+        self.old_θ1 = 0.05
+        self.old_θ2 = 0.05
+        self.old_θ3 = 0.05
         # PARAMETERS TO BE UPDATED
         self.ϕ1 = self.old_ϕ1
         self.ϕ2 = self.old_ϕ2
@@ -55,7 +55,7 @@ class EMV(object):
         self.θ1 = self.old_θ1
         self.θ2 = self.old_θ2
         self.θ3 = self.old_θ3
-        self.w  = 1
+        self.w  = 0
         self.final_wealths      = []
         # DATA FRAMES
         self.episodes           = []
@@ -106,8 +106,8 @@ class EMV(object):
         return next_wealth
 
     def __V__(self, t, x):
-        first_term  = (x - self.w) * (x - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - t))
-        second_term = self.old_θ2 * t * t
+        first_term  = ((x - self.w) ** 2) * np.exp( -2 * self.old_ϕ2 * (self.T - t))
+        second_term = self.old_θ2 * t ** 2
         third_term  = self.old_θ1 * t
         fourth_term = self.old_θ0
         V = first_term + second_term + third_term + fourth_term
@@ -185,10 +185,10 @@ class EMV(object):
             next_t   = self.D[i+1][0]
             next_x   = self.D[i+1][1]
             first_factor          = (dotV_i - self.λ * self.__H__(t)) * self.dt
-            first_num_2nd_factor  = (next_x - self.w) * (next_x - self.w) * np.exp( -2 * self.old_ϕ2 * (self.T - next_t) ) * (self.T - next_t)
-            second_num_2nd_factor = (x - self.w)      * (x - self.w)      * np.exp( -2 * self.old_ϕ2 * (self.T - t) ) * (self.T - t)
+            first_num_2nd_factor  = ((next_x - self.w) ** 2) * np.exp( -2 * self.old_ϕ2 * (self.T - next_t) ) * (self.T - next_t)
+            second_num_2nd_factor = ((x - self.w) ** 2)      * np.exp( -2 * self.old_ϕ2 * (self.T - t) ) * (self.T - t)
             num_2nd_factor        =  2 * (first_num_2nd_factor - second_num_2nd_factor)
-            second_factor         = - num_2nd_factor / self.dt - self.λ * (self.T - t)
+            second_factor         =  - num_2nd_factor / self.dt - self.λ * (self.T - t)
             sum += first_factor * second_factor
         return sum
 
