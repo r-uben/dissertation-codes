@@ -21,8 +21,8 @@ if __name__== "__main__":
 
     M = 20000
     N = 20
-    λ = 10
-    ηθ = 0.00005
+    λ = 1.2
+    ηθ = 0.005
     ηφ = ηθ
     α  = 0.05
 
@@ -30,6 +30,6 @@ if __name__== "__main__":
     market = 'BTC-USD_25:07:2020_25:07:2021' 
     dataset = clean_dataset(read_real_data(market))
     T = 1
-    dt = 1/len(dataset['Close'])
-    data = EMV(market, α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, μ, σ, r, dataset)
+    dt = 1/252#len(dataset['Close'])
+    data = EMV('log', α, ηθ, ηφ, x_0, z, T, dt, λ, M, N, μ, σ, r)
     data.EMV()

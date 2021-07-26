@@ -101,7 +101,7 @@ class EMV(object):
             next_wealth = markets.gbm_sol(prev_x, prev_u)
         if self.market == 'crr':
             next_wealth = markets.crr(prev_x, prev_u)
-        else:
+        if self.market != 'log' and self.market != 'exp' and self.market != 'crr':
             next_wealth = markets.real_data(prev_x, prev_u, self.df, i)
         return next_wealth
 
@@ -288,7 +288,7 @@ class EMV(object):
 
     def _giveName(self, name):
         if self.market == 'log' or self.market == 'exp' or self.market == 'crr':
-            name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self._round(self.ρ)) + '_z' + str(self.z) + '.csv')
+            name = os.path.join(self.data, self.market + '_' + name + '_μ' + str(self.μ) +   '_r' + str(self.r) + '_σ' + str(self.σ) + '_ρ' + str(self._round(self.ρ)) + '_z' + str(self.z) + '_λ' + str(self.λ) + '.csv')
         else:
             name = os.path.join(self.data, self.market.lower() + '_' + name + '_z' + str(self.z) + '.csv') 
         return name 
